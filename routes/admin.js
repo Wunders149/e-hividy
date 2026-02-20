@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -23,15 +23,36 @@ const upload = multer({
     } else {
       cb(new Error('Only images are allowed'));
     }
-  }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+// Input sanitization helper
+const sanitizeInput = (str) => {
+  if (!str) return '';
+  return str.replace(/[<>]/g, '').trim();
+};
+
 // Middleware to check if user is admin
-const isAdmin = (req, res, next) => {
+const isAdmin = async (req, res, next) => {
   if (!req.session.admin) {
     return res.redirect('/admin/login');
   }
-  next();
+  
+  try {
+    const connection = await db.getConnection();
+    const [results] = await connection.query('SELECT id FROM admins WHERE id = ?', [req.session.admin.id]);
+    connection.release();
+    
+    if (results.length === 0) {
+      req.session.destroy();
+      return res.redirect('/admin/login');
+    }
+    next();
+  } catch (error) {
+    console.error('Admin auth error:', error);
+    res.redirect('/admin/login');
+  }
 };
 
 // Admin login page

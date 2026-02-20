@@ -3,107 +3,366 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Details</title>
+  <title>Order #<%= order.id %> - E-Hividy Admin</title>
   <link rel="stylesheet" href="/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
   
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <div class="admin-container">
+    <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
-      <h2>🔧 Admin</h2>
-      <ul>
-        <li><a href="/admin/dashboard">📊 Dashboard</a></li>
-        <li><a href="/admin/products">📦 Products</a></li>
-        <li><a href="/admin/orders" class="active">📋 Orders</a></li>
-        <li><a href="/admin/logout">🚪 Logout</a></li>
-      </ul>
+      <div class="admin-sidebar-header">
+        <h2>
+          <span class="logo-icon">🛍️</span>
+          E-Hividy Admin
+        </h2>
+      </div>
+      
+      <nav class="admin-sidebar-nav">
+        <ul>
+          <li><a href="/admin/dashboard"><span class="icon">📊</span> Dashboard</a></li>
+          <li><a href="/admin/products"><span class="icon">📦</span> Products</a></li>
+          <li><a href="/admin/orders" class="active"><span class="icon">📋</span> Orders</a></li>
+          <li><a href="#" onclick="showLogoutModal(event)"><span class="icon">🚪</span> Logout</a></li>
+        </ul>
+      </nav>
+      
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-info">
+          <div class="admin-user-avatar">
+            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
+          </div>
+          <div class="admin-user-details">
+            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
+            <div class="admin-user-email"><%= admin.email %></div>
+          </div>
+        </div>
+      </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="admin-main">
-      <div class="dashboard-header">
-        <div>
-          <h1>Order #<%= order.id %></h1>
-          <span class="status-badge status-<%= order.status %>" style="margin-left: 1rem;">
-            <%= order.status %>
+      <div class="page-header">
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <h1 style="margin: 0;">
+            📋 Order #<%= order.id %>
+          </h1>
+          <% 
+            const statusIcons = {
+              'completed': '✓',
+              'pending': '⏳',
+              'processing': '📦',
+              'shipped': '🚚',
+              'cancelled': '✕',
+              'failed': '⚠'
+            };
+          %>
+          <span class="status-badge status-<%= order.status %>">
+            <%= statusIcons[order.status] || '📋' %> <%= order.status %>
           </span>
         </div>
-        <a href="/admin/orders" class="admin-btn admin-btn-secondary">← Back to Orders</a>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-        <div class="admin-section">
-          <h2>Customer Information</h2>
-          <div style="padding: 1rem 0;">
-            <p><strong>Name:</strong> <%= customer.name %></p>
-            <p><strong>Email:</strong> <%= customer.email %></p>
-            <p><strong>Address:</strong> <%= customer.address || 'N/A' %></p>
-            <p><strong>Phone:</strong> <%= customer.phone || 'N/A' %></p>
-          </div>
-        </div>
-
-        <div class="admin-section">
-          <h2>Order Information</h2>
-          <div style="padding: 1rem 0;">
-            <p><strong>Order Date:</strong> <%= new Date(order.created_at).toLocaleString() %></p>
-            <p><strong>Status:</strong> <%= order.status %></p>
-            <p><strong>Total Amount:</strong> <span style="font-size: 1.3rem; color: #28a745; font-weight: bold;">$<%= parseFloat(order.total_amount).toFixed(2) %></span></p>
-          </div>
+        <div class="page-header-actions">
+          <button class="admin-btn admin-btn-secondary" onclick="window.print()">
+            🖨️ Print
+          </button>
+          <a href="/admin/orders" class="admin-btn admin-btn-secondary">
+            ← Back to Orders
+          </a>
         </div>
       </div>
 
-      <div class="admin-section">
-        <h2>Order Items</h2>
-        <% if (items.length > 0) { %>
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% items.forEach(item => { %>
-                <tr>
-                  <td><strong><%= item.name %></strong></td>
-                  <td><%= item.quantity %></td>
-                  <td>$<%= parseFloat(item.price).toFixed(2) %></td>
-                  <td>$<%= (parseFloat(item.price) * item.quantity).toFixed(2) %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
+      <!-- Order Info Grid -->
+      <div class="order-info-grid">
+        <!-- Customer Information -->
+        <div class="info-card">
+          <h3>
+            <span>👤</span> Customer Information
+          </h3>
+          <p>
+            <span>Name:</span>
+            <strong><%= customer.name %></strong>
+          </p>
+          <p>
+            <span>Email:</span>
+            <strong><%= customer.email %></strong>
+          </p>
+          <p>
+            <span>Address:</span>
+            <strong><%= order.address || customer.address || 'N/A' %></strong>
+          </p>
+          <p>
+            <span>City:</span>
+            <strong><%= order.city || customer.city || 'N/A' %></strong>
+          </p>
+          <p>
+            <span>State:</span>
+            <strong><%= order.state || customer.state || 'N/A' %></strong>
+          </p>
+          <p>
+            <span>ZIP:</span>
+            <strong><%= order.zip || customer.zip || 'N/A' %></strong>
+          </p>
+        </div>
 
-          <div style="margin-top: 2rem; text-align: right; padding: 1.5rem; background-color: #f8f9fa; border-radius: 4px;">
-            <div style="margin-bottom: 0.75rem;">
-              <span style="font-weight: 600;">Subtotal:</span>
-              <span style="float: right;">$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
+        <!-- Order Information -->
+        <div class="info-card">
+          <h3>
+            <span>📦</span> Order Information
+          </h3>
+          <p>
+            <span>Order ID:</span>
+            <strong class="text-primary">#<%= order.id %></strong>
+          </p>
+          <p>
+            <span>Order Date:</span>
+            <strong><%= formatDateTime(order.created_at) %></strong>
+          </p>
+          <p>
+            <span>Status:</span>
+            <span class="status-badge status-<%= order.status %>">
+              <%= order.status %>
+            </span>
+          </p>
+          <p>
+            <span>Payment:</span>
+            <strong class="text-success">Paid</strong>
+          </p>
+          <p>
+            <span>Total Amount:</span>
+            <strong style="font-size: 1.4rem; color: var(--success);">
+              $<%= parseFloat(order.total_amount).toFixed(2) %>
+            </strong>
+          </p>
+        </div>
+      </div>
+
+      <!-- Order Items Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <span>🛒</span> Order Items
+          </h2>
+          <span style="font-size: 0.9rem; color: var(--gray-600);">
+            <%= items.length %> item<%= items.length !== 1 ? 's' : '' %>
+          </span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <% if (items && items.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% items.forEach(item => { %>
+                    <tr>
+                      <td>
+                        <strong><%= item.name %></strong>
+                        <div style="font-size: 0.8rem; color: var(--gray-500);">
+                          Product ID: #<%= item.product_id %>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="text-muted">$<%= parseFloat(item.price).toFixed(2) %></span>
+                      </td>
+                      <td>
+                        <span style="background: var(--gray-100); padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 500;">
+                          <%= item.quantity %>
+                        </span>
+                      </td>
+                      <td>
+                        <strong class="text-success">
+                          $<%= (parseFloat(item.price) * item.quantity).toFixed(2) %>
+                        </strong>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
             </div>
-            <div style="border-top: 2px solid #ddd; padding-top: 0.75rem; font-size: 1.2rem; font-weight: bold; color: #28a745;">
-              <span>Total:</span>
-              <span style="float: right;">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+              <div class="order-summary-row">
+                <span>Subtotal (<%= items.length %> item<%= items.length !== 1 ? 's' : '' %>)</span>
+                <span>$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
+              </div>
+              <div class="order-summary-row">
+                <span>Shipping</span>
+                <span class="text-success">Free</span>
+              </div>
+              <div class="order-summary-row">
+                <span>Total</span>
+                <span class="text-success">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>No Items</h3>
+              <p>This order doesn't have any items</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Timeline Card -->
+      <div class="card mt-3">
+        <div class="card-header">
+          <h2>
+            <span>🕐</span> Order Timeline
+          </h2>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; flex-direction: column; gap: 1.5rem; position: relative; padding-left: 2rem;">
+            <!-- Timeline line -->
+            <div style="position: absolute; left: 0.75rem; top: 0; bottom: 0; width: 2px; background: var(--gray-200);"></div>
+            
+            <!-- Order placed -->
+            <div style="position: relative;">
+              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--success); border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+              <div style="font-weight: 600; color: var(--dark);">Order Placed</div>
+              <div style="font-size: 0.85rem; color: var(--gray-500);"><%= formatDateTime(order.created_at) %></div>
+            </div>
+            
+            <!-- Order confirmed -->
+            <div style="position: relative;">
+              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: <%= order.status !== 'pending' ? 'var(--success)' : 'var(--gray-300)' %>; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+              <div style="font-weight: 600; color: <%= order.status !== 'pending' ? 'var(--dark)' : 'var(--gray-500)' %>;">Order Confirmed</div>
+              <div style="font-size: 0.85rem; color: var(--gray-500);">Payment received</div>
+            </div>
+            
+            <!-- Processing -->
+            <div style="position: relative;">
+              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: <%= ['completed', 'processing', 'shipped'].includes(order.status) ? 'var(--success)' : 'var(--gray-300)' %>; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+              <div style="font-weight: 600; color: <%= ['completed', 'processing', 'shipped'].includes(order.status) ? 'var(--dark)' : 'var(--gray-500)' %>;">Processing</div>
+              <div style="font-size: 0.85rem; color: var(--gray-500);">Preparing for shipment</div>
+            </div>
+            
+            <!-- Completed -->
+            <div style="position: relative;">
+              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: <%= order.status === 'completed' ? 'var(--success)' : 'var(--gray-300)' %>; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+              <div style="font-weight: 600; color: <%= order.status === 'completed' ? 'var(--dark)' : 'var(--gray-500)' %>;">Completed</div>
+              <div style="font-size: 0.85rem; color: var(--gray-500);">Order delivered</div>
             </div>
           </div>
-        <% } else { %>
-          <p style="text-align: center; padding: 2rem; color: #999;">No items in this order</p>
-        <% } %>
+        </div>
       </div>
     </main>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="logoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🚪 Confirm Logout</h3>
+        <button class="modal-close" onclick="closeLogoutModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+        <a href="/admin/logout" class="admin-btn admin-btn-danger">Yes, Logout</a>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Toggle sidebar menu
     function toggleAdminMenu() {
       const sidebar = document.getElementById('adminSidebar');
       sidebar.classList.toggle('active');
     }
 
+    // Close menu when a link is clicked
     document.querySelectorAll('#adminSidebar a').forEach(link => {
       link.addEventListener('click', () => {
         document.getElementById('adminSidebar').classList.remove('active');
       });
     });
+
+    // Format date and time helper
+    function formatDateTime(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Logout modal functions
+    function showLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeLogoutModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLogoutModal();
+      }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+      
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Check for URL parameters to show messages
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success) showToast(decodeURIComponent(success), 'success');
+    if (error) showToast(decodeURIComponent(error), 'error');
   </script>
 </body>
 </html>

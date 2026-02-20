@@ -3,81 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
+  <title>Admin Dashboard - E-Hividy</title>
   <link rel="stylesheet" href="/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
   
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <div class="admin-container">
+    <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
-      <h2>🔧 Admin</h2>
-      <ul>
-        <li><a href="/admin/dashboard" class="active">📊 Dashboard</a></li>
-        <li><a href="/admin/products">📦 Products</a></li>
-        <li><a href="/admin/orders">📋 Orders</a></li>
-        <li><a href="/admin/logout">🚪 Logout</a></li>
-      </ul>
+      <div class="admin-sidebar-header">
+        <h2>
+          <span class="logo-icon">🛍️</span>
+          E-Hividy Admin
+        </h2>
+      </div>
+      
+      <nav class="admin-sidebar-nav">
+        <ul>
+          <li><a href="/admin/dashboard" class="active"><span class="icon">📊</span> Dashboard</a></li>
+          <li><a href="/admin/products"><span class="icon">📦</span> Products</a></li>
+          <li><a href="/admin/orders"><span class="icon">📋</span> Orders</a></li>
+          <li><a href="#" onclick="showLogoutModal(event)"><span class="icon">🚪</span> Logout</a></li>
+        </ul>
+      </nav>
+      
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-info">
+          <div class="admin-user-avatar">
+            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
+          </div>
+          <div class="admin-user-details">
+            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
+            <div class="admin-user-email"><%= admin.email %></div>
+          </div>
+        </div>
+      </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="admin-main">
-      <div class="dashboard-header">
-        <h1>Dashboard</h1>
-        <a href="/admin/products/add" class="admin-btn">+ Add Product</a>
+      <div class="page-header">
+        <h1>📊 Dashboard Overview</h1>
+        <div class="page-header-actions">
+          <a href="/admin/products/add" class="admin-btn">
+            <span>✨</span> Add New Product
+          </a>
+        </div>
       </div>
 
+      <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
-          <h3>Total Orders</h3>
-          <div class="number"><%= stats.totalOrders %></div>
+          <div class="stat-card-header">
+            <h3>Total Orders</h3>
+            <span class="stat-card-icon">🛒</span>
+          </div>
+          <div class="number"><%= stats.totalOrders.toLocaleString() %></div>
+          <div class="stat-card-change positive">
+            <span>📈</span> All time
+          </div>
         </div>
+        
         <div class="stat-card">
-          <h3>Total Users</h3>
-          <div class="number"><%= stats.totalUsers %></div>
+          <div class="stat-card-header">
+            <h3>Total Users</h3>
+            <span class="stat-card-icon">👥</span>
+          </div>
+          <div class="number"><%= stats.totalUsers.toLocaleString() %></div>
+          <div class="stat-card-change positive">
+            <span>📈</span> Registered
+          </div>
         </div>
+        
         <div class="stat-card">
-          <h3>Total Products</h3>
-          <div class="number"><%= stats.totalProducts %></div>
+          <div class="stat-card-header">
+            <h3>Total Products</h3>
+            <span class="stat-card-icon">📦</span>
+          </div>
+          <div class="number"><%= stats.totalProducts.toLocaleString() %></div>
+          <div class="stat-card-change positive">
+            <span>📈</span> In catalog
+          </div>
         </div>
+        
         <div class="stat-card">
-          <h3>Total Revenue</h3>
-          <div class="number">$<%= parseFloat(stats.totalRevenue).toFixed(2) %></div>
+          <div class="stat-card-header">
+            <h3>Total Revenue</h3>
+            <span class="stat-card-icon">💰</span>
+          </div>
+          <div class="number">$<%= parseFloat(stats.totalRevenue || 0).toFixed(2) %></div>
+          <div class="stat-card-change positive">
+            <span>📈</span> Lifetime
+          </div>
         </div>
       </div>
 
-      <div class="admin-section">
-        <h2>Recent Orders</h2>
-        <% if (recentOrders.length > 0) { %>
-          <table>
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% recentOrders.forEach(order => { %>
-                <tr>
-                  <td><strong>#<%= order.id %></strong></td>
-                  <td><%= order.customer_name %></td>
-                  <td>$<%= parseFloat(order.total_amount).toFixed(2) %></td>
-                  <td><%= new Date(order.created_at).toLocaleDateString() %></td>
-                  <td><a href="/admin/orders/<%= order.id %>" class="view-btn">View</a></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        <% } else { %>
-          <p style="text-align: center; padding: 2rem; color: #999;">No orders yet</p>
-        <% } %>
+      <!-- Recent Orders Card -->
+      <div class="recent-orders-card">
+        <div class="card-header">
+          <h2>
+            <span>🕐</span> Recent Orders
+          </h2>
+          <a href="/admin/orders" class="admin-btn admin-btn-sm admin-btn-secondary">
+            View All Orders →
+          </a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <% if (recentOrders && recentOrders.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% recentOrders.forEach(order => { %>
+                    <tr>
+                      <td><strong>#<%= order.id %></strong></td>
+                      <td><%= order.customer_name %></td>
+                      <td><strong class="text-success">$<%= parseFloat(order.total_amount).toFixed(2) %></strong></td>
+                      <td><%= formatDate(order.created_at) %></td>
+                      <td>
+                        <a href="/admin/orders/<%= order.id %>" class="btn-action btn-action-view">
+                          👁️ View
+                        </a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>No Orders Yet</h3>
+              <p>Orders will appear here once customers start purchasing</p>
+              <a href="/admin/products" class="admin-btn">Manage Products</a>
+            </div>
+          <% } %>
+        </div>
       </div>
     </main>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="logoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🚪 Confirm Logout</h3>
+        <button class="modal-close" onclick="closeLogoutModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+        <a href="/admin/logout" class="admin-btn admin-btn-danger">Yes, Logout</a>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Toggle sidebar menu
     function toggleAdminMenu() {
       const sidebar = document.getElementById('adminSidebar');
       sidebar.classList.toggle('active');
@@ -89,6 +186,66 @@
         document.getElementById('adminSidebar').classList.remove('active');
       });
     });
+
+    // Logout modal functions
+    function showLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeLogoutModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLogoutModal();
+      }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+      
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Check for URL parameters to show messages
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success) showToast(decodeURIComponent(success), 'success');
+    if (error) showToast(decodeURIComponent(error), 'error');
   </script>
 </body>
 </html>

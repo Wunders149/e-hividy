@@ -54,19 +54,31 @@ router.post('/add', isAuthenticated, async (req, res) => {
 
     // Check if product exists and has stock
     const [products] = await connection.query('SELECT * FROM products WHERE id = ?', [productId]);
-    
+
     if (products.length === 0) {
       connection.release();
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Check if item already in cart
-    const [existing] = await connection.query(
-      'SELECT id FROM cart WHERE user_id = ? AND product_id = ?',
+    const product = products[0];
+
+    // Check if requested quantity exceeds stock
+    const [cartItems] = await connection.query(
+      'SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?',
       [userId, productId]
     );
 
-    if (existing.length > 0) {
+    const currentQtyInCart = cartItems.length > 0 ? cartItems[0].quantity : 0;
+    const totalQtyNeeded = currentQtyInCart + parseInt(quantity);
+
+    if (totalQtyNeeded > product.stock) {
+      connection.release();
+      return res.status(400).json({ 
+        error: `Only ${product.stock - currentQtyInCart} item(s) available in stock` 
+      });
+    }
+
+    if (currentQtyInCart > 0) {
       // Update quantity
       await connection.query(
         'UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?',

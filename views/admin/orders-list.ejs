@@ -3,82 +3,294 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Orders</title>
+  <title>Manage Orders - E-Hividy Admin</title>
   <link rel="stylesheet" href="/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
   
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <div class="admin-container">
+    <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
-      <h2>🔧 Admin</h2>
-      <ul>
-        <li><a href="/admin/dashboard">📊 Dashboard</a></li>
-        <li><a href="/admin/products">📦 Products</a></li>
-        <li><a href="/admin/orders" class="active">📋 Orders</a></li>
-        <li><a href="/admin/logout">🚪 Logout</a></li>
-      </ul>
+      <div class="admin-sidebar-header">
+        <h2>
+          <span class="logo-icon">🛍️</span>
+          E-Hividy Admin
+        </h2>
+      </div>
+      
+      <nav class="admin-sidebar-nav">
+        <ul>
+          <li><a href="/admin/dashboard"><span class="icon">📊</span> Dashboard</a></li>
+          <li><a href="/admin/products"><span class="icon">📦</span> Products</a></li>
+          <li><a href="/admin/orders" class="active"><span class="icon">📋</span> Orders</a></li>
+          <li><a href="#" onclick="showLogoutModal(event)"><span class="icon">🚪</span> Logout</a></li>
+        </ul>
+      </nav>
+      
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-info">
+          <div class="admin-user-avatar">
+            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
+          </div>
+          <div class="admin-user-details">
+            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
+            <div class="admin-user-email"><%= admin.email %></div>
+          </div>
+        </div>
+      </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="admin-main">
-      <div class="dashboard-header">
-        <h1>Manage Orders</h1>
+      <div class="page-header">
+        <h1>📋 Manage Orders</h1>
+        <div class="page-header-actions">
+          <button class="admin-btn admin-btn-secondary" onclick="window.print()">
+            🖨️ Print Report
+          </button>
+        </div>
       </div>
 
-      <div class="admin-section">
-        <% if (error) { %>
-          <div class="message error"><%= error %></div>
-        <% } %>
+      <!-- Orders Card -->
+      <div class="card">
+        <div class="card-body" style="padding: 0;">
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error" style="margin: 1.5rem;">
+              <span>⚠️</span> <%= error %>
+            </div>
+          <% } %>
 
-        <% if (orders.length > 0) { %>
-          <table>
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Email</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% orders.forEach(order => { %>
-                <tr>
-                  <td><strong>#<%= order.id %></strong></td>
-                  <td><%= order.customer_name %></td>
-                  <td><%= order.email %></td>
-                  <td>$<%= parseFloat(order.total_amount).toFixed(2) %></td>
-                  <td>
-                    <span class="status-badge status-<%= order.status %>">
-                      <%= order.status %>
-                    </span>
-                  </td>
-                  <td><%= new Date(order.created_at).toLocaleDateString() %></td>
-                  <td><a href="/admin/orders/<%= order.id %>" class="view-btn">View Details</a></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        <% } else { %>
-          <p style="text-align: center; padding: 2rem; color: #999;">No orders found yet</p>
-        <% } %>
+          <% if (orders && orders.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orders.forEach(order => { %>
+                    <tr>
+                      <td>
+                        <strong class="text-primary">#<%= order.id %></strong>
+                      </td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                          <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem;">
+                            <%= order.customer_name.charAt(0).toUpperCase() %>
+                          </div>
+                          <span><%= order.customer_name %></span>
+                        </div>
+                      </td>
+                      <td style="color: var(--gray-600); font-size: 0.9rem;">
+                        <%= order.email %>
+                      </td>
+                      <td>
+                        <strong class="text-success">$<%= parseFloat(order.total_amount).toFixed(2) %></strong>
+                      </td>
+                      <td>
+                        <% 
+                          const statusIcons = {
+                            'completed': '✓',
+                            'pending': '⏳',
+                            'processing': '📦',
+                            'shipped': '🚚',
+                            'cancelled': '✕',
+                            'failed': '⚠'
+                          };
+                        %>
+                        <span class="status-badge status-<%= order.status %>">
+                          <%= statusIcons[order.status] || '📋' %> <%= order.status %>
+                        </span>
+                      </td>
+                      <td>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                          <span style="font-size: 0.9rem;"><%= formatDate(order.created_at) %></span>
+                          <span style="font-size: 0.75rem; color: var(--gray-500);"><%= formatTime(order.created_at) %></span>
+                        </div>
+                      </td>
+                      <td>
+                        <a href="/admin/orders/<%= order.id %>" class="btn-action btn-action-view">
+                          👁️ View Details
+                        </a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Order Summary -->
+            <div style="padding: 1.5rem 2rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), transparent); border-top: 1px solid var(--gray-200);">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Total Orders</div>
+                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--dark);"><%= orders.length %></div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Total Revenue</div>
+                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
+                    $<%= orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0).toFixed(2) %>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Completed</div>
+                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
+                    <%= orders.filter(o => o.status === 'completed').length %>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Pending</div>
+                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">
+                    <%= orders.filter(o => o.status === 'pending').length %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>No Orders Yet</h3>
+              <p>Orders will appear here once customers start making purchases</p>
+              <a href="/admin/dashboard" class="admin-btn">
+                📊 View Dashboard
+              </a>
+            </div>
+          <% } %>
+        </div>
       </div>
     </main>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="logoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🚪 Confirm Logout</h3>
+        <button class="modal-close" onclick="closeLogoutModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+        <a href="/admin/logout" class="admin-btn admin-btn-danger">Yes, Logout</a>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Toggle sidebar menu
     function toggleAdminMenu() {
       const sidebar = document.getElementById('adminSidebar');
       sidebar.classList.toggle('active');
     }
 
+    // Close menu when a link is clicked
     document.querySelectorAll('#adminSidebar a').forEach(link => {
       link.addEventListener('click', () => {
         document.getElementById('adminSidebar').classList.remove('active');
       });
     });
+
+    // Format date helper
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return diffMins + 'm ago';
+      if (diffHours < 24) return diffHours + 'h ago';
+      if (diffDays < 7) return diffDays + 'd ago';
+      
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      });
+    }
+
+    // Format time helper
+    function formatTime(dateString) {
+      return new Date(dateString).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    }
+
+    // Logout modal functions
+    function showLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeLogoutModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLogoutModal();
+      }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+      
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Check for URL parameters to show messages
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success) showToast(decodeURIComponent(success), 'success');
+    if (error) showToast(decodeURIComponent(error), 'error');
   </script>
 </body>
 </html>

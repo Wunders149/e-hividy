@@ -3,87 +3,378 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= isEdit ? 'Edit Product' : 'Add New Product' %></title>
+  <title><%= isEdit ? 'Edit Product' : 'Add New Product' %> - E-Hividy Admin</title>
   <link rel="stylesheet" href="/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
   
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <div class="admin-container">
+    <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
-      <h2>🔧 Admin</h2>
-      <ul>
-        <li><a href="/admin/dashboard">📊 Dashboard</a></li>
-        <li><a href="/admin/products" class="active">📦 Products</a></li>
-        <li><a href="/admin/orders">📋 Orders</a></li>
-        <li><a href="/admin/logout">🚪 Logout</a></li>
-      </ul>
+      <div class="admin-sidebar-header">
+        <h2>
+          <span class="logo-icon">🛍️</span>
+          E-Hividy Admin
+        </h2>
+      </div>
+      
+      <nav class="admin-sidebar-nav">
+        <ul>
+          <li><a href="/admin/dashboard"><span class="icon">📊</span> Dashboard</a></li>
+          <li><a href="/admin/products" class="active"><span class="icon">📦</span> Products</a></li>
+          <li><a href="/admin/orders"><span class="icon">📋</span> Orders</a></li>
+          <li><a href="#" onclick="showLogoutModal(event)"><span class="icon">🚪</span> Logout</a></li>
+        </ul>
+      </nav>
+      
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-info">
+          <div class="admin-user-avatar">
+            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
+          </div>
+          <div class="admin-user-details">
+            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
+            <div class="admin-user-email"><%= admin.email %></div>
+          </div>
+        </div>
+      </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="admin-main">
-      <div class="dashboard-header">
-        <h1><%= isEdit ? 'Edit Product' : 'Add New Product' %></h1>
+      <div class="page-header">
+        <h1>
+          <%= isEdit ? '✏️' : '✨' %> 
+          <%= isEdit ? 'Edit Product' : 'Add New Product' %>
+        </h1>
+        <div class="page-header-actions">
+          <a href="/admin/products" class="admin-btn admin-btn-secondary">
+            ← Back to Products
+          </a>
+        </div>
       </div>
 
-      <div class="admin-section" style="max-width: 600px;">
-        <% if (message) { %>
-          <div class="message <%= message.includes('Error') ? 'error' : 'success' %>"><%= message %></div>
-        <% } %>
+      <!-- Product Form Card -->
+      <div class="card product-form-container">
+        <div class="card-body">
+          <% if (typeof message !== 'undefined' && message) { %>
+            <div class="alert <%= message.includes('Error') || message.includes('required') ? 'alert-error' : 'alert-success' %>">
+              <span><%= message.includes('Error') ? '⚠️' : '✓' %></span>
+              <%= message %>
+            </div>
+          <% } %>
 
-        <form method="POST" enctype="multipart/form-data">
-          <div class="form-group">
-            <label for="name">Product Name *</label>
-            <input type="text" id="name" name="name" value="<%= typeof product !== 'undefined' && product ? product.name : '' %>" required>
-          </div>
+          <form method="POST" enctype="multipart/form-data" id="productForm">
+            <!-- Product Name -->
+            <div class="form-group">
+              <label for="name">
+                Product Name
+                <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                class="form-control"
+                value="<%= typeof product !== 'undefined' && product ? product.name : '' %>" 
+                placeholder="e.g., Wireless Bluetooth Headphones"
+                required
+              >
+            </div>
 
-          <div class="form-group">
-            <label for="description">Description *</label>
-            <textarea id="description" name="description" required><%= typeof product !== 'undefined' && product ? product.description : '' %></textarea>
-          </div>
+            <!-- Description -->
+            <div class="form-group">
+              <label for="description">
+                Description
+                <span class="required">*</span>
+              </label>
+              <textarea 
+                id="description" 
+                name="description" 
+                class="form-control"
+                placeholder="Describe your product in detail..."
+                required
+              ><%= typeof product !== 'undefined' && product ? product.description : '' %></textarea>
+            </div>
 
-          <div class="form-group">
-            <label for="price">Price ($) *</label>
-            <input type="number" id="price" name="price" step="0.01" value="<%= typeof product !== 'undefined' && product ? parseFloat(product.price) : '' %>" required>
-          </div>
-
-          <div class="form-group">
-            <label for="stock">Stock Quantity *</label>
-            <input type="number" id="stock" name="stock" value="<%= typeof product !== 'undefined' && product ? product.stock : '' %>" required>
-          </div>
-
-          <div class="form-group">
-            <label for="image">Product Image</label>
-            <% if (isEdit && product && product.image) { %>
-              <div style="margin-bottom: 10px;">
-                <img src="<%= product.image %>" alt="Current Image" style="max-width: 100px; display: block; margin-bottom: 5px;">
-                <small>Current image: <%= product.image %></small>
+            <!-- Price and Stock Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+              <div class="form-group">
+                <label for="price">
+                  Price ($)
+                  <span class="required">*</span>
+                </label>
+                <input 
+                  type="number" 
+                  id="price" 
+                  name="price" 
+                  class="form-control"
+                  step="0.01" 
+                  min="0"
+                  value="<%= typeof product !== 'undefined' && product ? parseFloat(product.price) : '' %>" 
+                  placeholder="0.00"
+                  required
+                >
               </div>
-            <% } %>
-            <input type="file" id="image" name="image" accept="image/*">
-          </div>
 
-          <div class="form-buttons">
-            <button type="submit" class="admin-btn" style="flex: 1;">
-              <%= isEdit ? '✏️ Update Product' : '✨ Add Product' %>
-            </button>
-            <a href="/admin/products" class="admin-btn admin-btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
-          </div>
-        </form>
+              <div class="form-group">
+                <label for="stock">
+                  Stock Quantity
+                  <span class="required">*</span>
+                </label>
+                <input 
+                  type="number" 
+                  id="stock" 
+                  name="stock" 
+                  class="form-control"
+                  min="0"
+                  value="<%= typeof product !== 'undefined' && product ? product.stock : '' %>" 
+                  placeholder="0"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="form-group">
+              <label for="image">Product Image</label>
+              
+              <% if (isEdit && product && product.image) { %>
+                <div class="current-image-preview">
+                  <img src="<%= product.image %>" alt="Current Image" id="currentImagePreview">
+                  <p class="text-muted mt-1">Current image: <%= product.image.split('/').pop() %></p>
+                </div>
+              <% } %>
+
+              <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('image').click()">
+                <div class="image-upload-icon">📷</div>
+                <div class="image-upload-text">
+                  <strong>Click to upload</strong> or drag and drop
+                </div>
+                <div class="image-upload-hint">
+                  PNG, JPG, GIF up to 5MB
+                </div>
+                <input 
+                  type="file" 
+                  id="image" 
+                  name="image" 
+                  accept="image/*" 
+                  style="display: none;"
+                  onchange="handleImageSelect(event)"
+                >
+              </div>
+
+              <div id="imagePreview" class="form-preview hidden">
+                <img id="previewImg" src="" alt="Preview">
+                <p class="text-muted mt-1" id="imageFileName"></p>
+              </div>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="form-buttons">
+              <button type="submit" class="admin-btn admin-btn-lg" style="flex: 2;">
+                <%= isEdit ? '✏️ Update Product' : '✨ Add Product' %>
+              </button>
+              <a href="/admin/products" class="admin-btn admin-btn-secondary admin-btn-lg" style="flex: 1; text-align: center;">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="logoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🚪 Confirm Logout</h3>
+        <button class="modal-close" onclick="closeLogoutModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+        <a href="/admin/logout" class="admin-btn admin-btn-danger">Yes, Logout</a>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Toggle sidebar menu
     function toggleAdminMenu() {
       const sidebar = document.getElementById('adminSidebar');
       sidebar.classList.toggle('active');
     }
 
+    // Close menu when a link is clicked
     document.querySelectorAll('#adminSidebar a').forEach(link => {
       link.addEventListener('click', () => {
         document.getElementById('adminSidebar').classList.remove('active');
       });
     });
+
+    // Image preview handler
+    function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('imagePreview');
+          const img = document.getElementById('previewImg');
+          const fileName = document.getElementById('imageFileName');
+          
+          img.src = e.target.result;
+          fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+          preview.classList.remove('hidden');
+          
+          // Update upload area text
+          document.querySelector('.image-upload-text').innerHTML = '<strong>' + file.name + '</strong>';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Format file size
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Drag and drop for image upload
+    const uploadArea = document.getElementById('imageUploadArea');
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'var(--primary)';
+      uploadArea.style.background = 'rgba(102, 126, 234, 0.1)';
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '';
+      uploadArea.style.background = '';
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '';
+      uploadArea.style.background = '';
+      
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const input = document.getElementById('image');
+        input.files = e.dataTransfer.files;
+        handleImageSelect({ target: { files: e.dataTransfer.files } });
+      } else {
+        showToast('Please drop an image file', 'error');
+      }
+    });
+
+    // Form validation
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+      const name = document.getElementById('name').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const price = parseFloat(document.getElementById('price').value);
+      const stock = parseInt(document.getElementById('stock').value);
+
+      if (!name || name.length < 3) {
+        e.preventDefault();
+        showToast('Product name must be at least 3 characters', 'error');
+        document.getElementById('name').focus();
+        return false;
+      }
+
+      if (!description || description.length < 10) {
+        e.preventDefault();
+        showToast('Description must be at least 10 characters', 'error');
+        document.getElementById('description').focus();
+        return false;
+      }
+
+      if (isNaN(price) || price < 0) {
+        e.preventDefault();
+        showToast('Please enter a valid price', 'error');
+        document.getElementById('price').focus();
+        return false;
+      }
+
+      if (isNaN(stock) || stock < 0) {
+        e.preventDefault();
+        showToast('Please enter a valid stock quantity', 'error');
+        document.getElementById('stock').focus();
+        return false;
+      }
+    });
+
+    // Logout modal functions
+    function showLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeLogoutModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLogoutModal();
+      }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+      
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Check for URL parameters to show messages
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success) showToast(decodeURIComponent(success), 'success');
+    if (error) showToast(decodeURIComponent(error), 'error');
   </script>
 </body>
 </html>
