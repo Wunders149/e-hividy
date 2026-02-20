@@ -1,0 +1,191 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db');
+
+// Middleware to check if user is logged in
+const isAuthenticated = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect('/auth/login-page');
+  }
+  next();
+};
+
+// User account page
+router.get('/account', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const connection = await db.getConnection();
+
+    // Get user details
+    const [users] = await connection.query('SELECT * FROM users WHERE id = ?', [userId]);
+
+    // Get user orders
+    const [orders] = await connection.query(`
+      SELECT o.* FROM orders o
+      WHERE o.user_id = ?
+      ORDER BY o.created_at DESC
+    `, [userId]);
+
+    // Get user wishlist count
+    const [wishlistCount] = await connection.query(`
+      SELECT COUNT(*) as count FROM wishlist WHERE user_id = ?
+    `, [userId]);
+
+    connection.release();
+
+    res.render('account', {
+      user: req.session.user,
+      userDetails: users[0],
+      orders,
+      wishlistCount: wishlistCount[0].count
+    });
+  } catch (error) {
+    console.error('Account page error:', error);
+    res.render('account', {
+      user: req.session.user,
+      userDetails: req.session.user,
+      orders: [],
+      wishlistCount: 0,
+      error: 'Error loading account info'
+    });
+  }
+});
+
+// Order details page
+router.get('/order/:id', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const orderId = req.params.id;
+    const connection = await db.getConnection();
+
+    // Get order (verify it belongs to user)
+    const [orders] = await connection.query(
+      'SELECT * FROM orders WHERE id = ? AND user_id = ?',
+      [orderId, userId]
+    );
+
+    if (orders.length === 0) {
+      connection.release();
+      return res.status(404).send('Order not found');
+    }
+
+    // Get order items
+    const [items] = await connection.query(`
+      SELECT oi.*, p.name
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      WHERE oi.order_id = ?
+    `, [orderId]);
+
+    connection.release();
+
+    res.render('order-details', {
+      user: req.session.user,
+      order: orders[0],
+      items
+    });
+  } catch (error) {
+    console.error('Order details error:', error);
+    res.status(500).send('Error loading order');
+  }
+});
+
+// Wishlist page
+router.get('/wishlist', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const connection = await db.getConnection();
+
+    // Get wishlist items
+    const [wishlist] = await connection.query(`
+      SELECT w.id as wish_id, p.*
+      FROM wishlist w
+      JOIN products p ON w.product_id = p.id
+      WHERE w.user_id = ?
+      ORDER BY w.created_at DESC
+    `, [userId]);
+
+    connection.release();
+
+    res.render('wishlist', {
+      user: req.session.user,
+      items: wishlist
+    });
+  } catch (error) {
+    console.error('Wishlist error:', error);
+    res.render('wishlist', {
+      user: req.session.user,
+      items: [],
+      error: 'Error loading wishlist'
+    });
+  }
+});
+
+// Add to wishlist
+router.post('/wishlist/add', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ error: 'Product ID required' });
+    }
+
+    const connection = await db.getConnection();
+
+    // Check if already in wishlist
+    const [existing] = await connection.query(
+      'SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?',
+      [userId, productId]
+    );
+
+    if (existing.length > 0) {
+      connection.release();
+      return res.status(400).json({ error: 'Already in wishlist' });
+    }
+
+    // Add to wishlist
+    await connection.query(
+      'INSERT INTO wishlist (user_id, product_id) VALUES (?, ?)',
+      [userId, productId]
+    );
+
+    connection.release();
+    res.json({ success: true, message: 'Added to wishlist' });
+  } catch (error) {
+    console.error('Add to wishlist error:', error);
+    res.status(500).json({ error: 'Error adding to wishlist' });
+  }
+});
+
+// Remove from wishlist
+router.post('/wishlist/remove/:id', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const wishId = req.params.id;
+
+    const connection = await db.getConnection();
+
+    // Verify wishlist item belongs to user
+    const [items] = await connection.query(
+      'SELECT id FROM wishlist WHERE id = ? AND user_id = ?',
+      [wishId, userId]
+    );
+
+    if (items.length === 0) {
+      connection.release();
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // Remove from wishlist
+    await connection.query('DELETE FROM wishlist WHERE id = ?', [wishId]);
+    connection.release();
+
+    res.json({ success: true, message: 'Removed from wishlist' });
+  } catch (error) {
+    console.error('Remove from wishlist error:', error);
+    res.status(500).json({ error: 'Error removing from wishlist' });
+  }
+});
+
+module.exports = router;

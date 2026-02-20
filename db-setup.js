@@ -71,19 +71,43 @@ async function setupDatabase() {
     `);
     console.log('Orders table created/exists');
 
-    // Create order items table
+    // Create admins table
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS order_items (
+      CREATE TABLE IF NOT EXISTS admins (
         id INT PRIMARY KEY AUTO_INCREMENT,
-        order_id INT NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Admins table created/exists');
+
+    // Create wishlist table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS wishlist (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
         product_id INT NOT NULL,
-        quantity INT NOT NULL,
-        price DECIMAL(10, 2) NOT NULL,
-        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_wish (user_id, product_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
       )
     `);
-    console.log('Order items table created/exists');
+    console.log('Wishlist table created/exists');
+
+    // Create order status tracking table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS order_status_history (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        order_id INT NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('Order status history table created/exists');
 
     // Insert sample products
     const [existingProducts] = await connection.query('SELECT COUNT(*) as count FROM products');
@@ -104,6 +128,18 @@ async function setupDatabase() {
         ('Cable', 'High-speed HDMI cable', 19.99, 50)
       `);
       console.log('Sample products inserted');
+    }
+
+    // Insert sample admin user (email: admin@shop.com, password: admin123)
+    const [existingAdmins] = await connection.query('SELECT COUNT(*) as count FROM admins');
+    if (existingAdmins[0].count === 0) {
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash('admin123', 8);
+      await connection.query(
+        'INSERT INTO admins (name, email, password) VALUES (?, ?, ?)',
+        ['Admin User', 'admin@shop.com', hashedPassword]
+      );
+      console.log('Sample admin user inserted (email: admin@shop.com, password: admin123)');
     }
 
     console.log('Database setup completed successfully!');
