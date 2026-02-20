@@ -179,7 +179,7 @@
                 <td>#<%= product.id %></td>
                 <td><strong><%= product.name %></strong></td>
                 <td><%= product.description.substring(0, 50) %>...</td>
-                <td>$<%= product.price.toFixed(2) %></td>
+                <td>$<%= parseFloat(product.price).toFixed(2) %></td>
                 <td><%= product.stock %></td>
                 <td>
                   <a href="/admin/products/edit/<%= product.id %>" class="edit-btn">Edit</a>

@@ -196,7 +196,7 @@
         </div>
         <div class="stat-card">
           <h3>Total Revenue</h3>
-          <div class="number">$<%= stats.totalRevenue.toFixed(2) %></div>
+          <div class="number">$<%= parseFloat(stats.totalRevenue).toFixed(2) %></div>
         </div>
       </div>
 
@@ -218,7 +218,7 @@
                 <tr>
                   <td>#<%= order.id %></td>
                   <td><%= order.customer_name %></td>
-                  <td>$<%= order.total_amount.toFixed(2) %></td>
+                  <td>$<%= parseFloat(order.total_amount).toFixed(2) %></td>
                   <td><%= new Date(order.created_at).toLocaleDateString() %></td>
                   <td><a href="/admin/orders/<%= order.id %>">View</a></td>
                 </tr>

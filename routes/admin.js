@@ -134,7 +134,8 @@ router.get('/products/add', isAdmin, (req, res) => {
   res.render('admin/product-form', {
     admin: req.session.admin,
     product: null,
-    isEdit: false
+    isEdit: false,
+    message: ''
   });
 });
 
@@ -185,7 +186,8 @@ router.get('/products/edit/:id', isAdmin, async (req, res) => {
     res.render('admin/product-form', {
       admin: req.session.admin,
       product: products[0],
-      isEdit: true
+      isEdit: true,
+      message: ''
     });
   } catch (error) {
     console.error('Edit product error:', error);

@@ -223,7 +223,7 @@
             <div class="info-item">
               <div class="info-label">Total Amount</div>
               <div class="info-value" style="font-size: 1.3rem; color: #28a745;">
-                $<%= order.total_amount.toFixed(2) %>
+                $<%= parseFloat(order.total_amount).toFixed(2) %>
               </div>
             </div>
           </div>
@@ -245,8 +245,8 @@
                 <tr>
                   <td><%= item.name %></td>
                   <td><%= item.quantity %></td>
-                  <td>$<%= item.price.toFixed(2) %></td>
-                  <td>$<%= (item.price * item.quantity).toFixed(2) %></td>
+                  <td>$<%= parseFloat(item.price).toFixed(2) %></td>
+                  <td>$<%= (parseFloat(item.price) * item.quantity).toFixed(2) %></td>
                 </tr>
               <% }); %>
             </tbody>
@@ -255,11 +255,11 @@
           <div class="summary-box">
             <div class="summary-row">
               <span>Subtotal:</span>
-              <span>$<%= items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) %></span>
+              <span>$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
             </div>
             <div class="summary-row summary-total">
               <span>Total:</span>
-              <span>$<%= order.total_amount.toFixed(2) %></span>
+              <span>$<%= parseFloat(order.total_amount).toFixed(2) %></span>
             </div>
           </div>
         <% } else { %>

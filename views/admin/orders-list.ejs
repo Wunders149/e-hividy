@@ -165,7 +165,7 @@
                 <td><strong>#<%= order.id %></strong></td>
                 <td><%= order.customer_name %></td>
                 <td><%= order.email %></td>
-                <td>$<%= order.total_amount.toFixed(2) %></td>
+                <td>$<%= parseFloat(order.total_amount).toFixed(2) %></td>
                 <td>
                   <span class="status-badge status-<%= order.status %>">
                     <%= order.status %>
