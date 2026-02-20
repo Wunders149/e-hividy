@@ -1,18 +1,23 @@
-const mongoose = require('mongoose');
+const mysql = require('mysql2/promise');
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://razafimahefaphilibert7_db_user:H3ClFMQ7I0KRRuoN@cluster0.sh1mvhi.mongodb.net/shop?retryWrites=true&w=majority';
-
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('MongoDB connected!');
-}).catch((err) => {
-  console.error('MongoDB connection error:', err.message);
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'shop',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB error:', err);
-});
+pool.getConnection()
+  .then((conn) => {
+    console.log('MySQL connected!');
+    conn.release();
+  })
+  .catch((err) => {
+    console.error('MySQL connection error:', err.message);
+    console.log('Make sure XAMPP MySQL is running on localhost:3306');
+  });
 
-module.exports = mongoose;
+module.exports = pool;
