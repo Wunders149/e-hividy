@@ -31,13 +31,23 @@ router.get('/account', isAuthenticated, async (req, res) => {
       SELECT COUNT(*) as count FROM wishlist WHERE user_id = ?
     `, [userId]);
 
+    // Get user wishlist items
+    const [wishlistItems] = await connection.query(`
+      SELECT w.id as wish_id, p.*
+      FROM wishlist w
+      JOIN products p ON w.product_id = p.id
+      WHERE w.user_id = ?
+      ORDER BY w.created_at DESC
+    `, [userId]);
+
     connection.release();
 
     res.render('account', {
       user: req.session.user,
       userDetails: users[0],
       orders,
-      wishlistCount: wishlistCount[0].count
+      wishlistCount: wishlistCount[0].count,
+      wishlistItems
     });
   } catch (error) {
     console.error('Account page error:', error);
@@ -46,6 +56,7 @@ router.get('/account', isAuthenticated, async (req, res) => {
       userDetails: req.session.user,
       orders: [],
       wishlistCount: 0,
+      wishlistItems: [],
       error: 'Error loading account info'
     });
   }
@@ -90,35 +101,9 @@ router.get('/order/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-// Wishlist page
-router.get('/wishlist', isAuthenticated, async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-    const connection = await db.getConnection();
-
-    // Get wishlist items
-    const [wishlist] = await connection.query(`
-      SELECT w.id as wish_id, p.*
-      FROM wishlist w
-      JOIN products p ON w.product_id = p.id
-      WHERE w.user_id = ?
-      ORDER BY w.created_at DESC
-    `, [userId]);
-
-    connection.release();
-
-    res.render('wishlist', {
-      user: req.session.user,
-      items: wishlist
-    });
-  } catch (error) {
-    console.error('Wishlist error:', error);
-    res.render('wishlist', {
-      user: req.session.user,
-      items: [],
-      error: 'Error loading wishlist'
-    });
-  }
+// Wishlist page redirect to account tab
+router.get('/wishlist', isAuthenticated, (req, res) => {
+  res.redirect('/user/account?tab=wishlist');
 });
 
 // Add to wishlist

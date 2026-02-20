@@ -122,60 +122,68 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 2rem;
+      margin-top: 1.5rem;
     }
     
     .wishlist-card {
       background: white;
       padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       text-align: center;
+      transition: all 0.3s;
+      border: 1px solid #eee;
+    }
+    
+    .wishlist-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .wishlist-card .cart-item-image {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
     }
     
     .wishlist-card h3 {
       margin: 0.5rem 0;
+      font-size: 1.1rem;
+      color: #333;
     }
     
     .wishlist-card .price {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       color: #28a745;
       font-weight: bold;
-      margin: 0.5rem 0;
+      margin-bottom: 1rem;
     }
     
     .wishlist-card .actions {
       display: flex;
+      flex-direction: column;
       gap: 0.5rem;
-      margin-top: 1rem;
     }
     
-    .wishlist-card .actions button,
-    .wishlist-card .actions a {
-      flex: 1;
-      padding: 0.5rem;
-      border-radius: 4px;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    
-    .add-cart-btn {
-      background-color: #007bff;
-      color: white;
-    }
-    
-    .add-cart-btn:hover {
-      background-color: #0056b3;
+    .wishlist-card .view-order-btn {
+      width: 100%;
     }
     
     .remove-btn {
-      background-color: #dc3545;
+      background: #dc3545;
       color: white;
+      border: none;
+      padding: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.3s;
     }
     
     .remove-btn:hover {
-      background-color: #c82333;
+      background: #c82333;
     }
     
     .empty-message {
@@ -272,7 +280,7 @@
                 <tr>
                   <td><strong>#<%= order.id %></strong></td>
                   <td><%= new Date(order.created_at).toLocaleDateString() %></td>
-                  <td>$<%= order.total_amount.toFixed(2) %></td>
+                  <td>$<%= parseFloat(order.total_amount).toFixed(2) %></td>
                   <td><span style="background: #d4edda; padding: 0.3rem 0.6rem; border-radius: 4px;"><%= order.status %></span></td>
                   <td><a href="/user/order/<%= order.id %>" class="view-order-btn">View</a></td>
                 </tr>
@@ -289,7 +297,32 @@
     <div id="wishlist" class="tab-content">
       <div class="info-box">
         <h2>My Wishlist</h2>
-        <!-- Wishlist content will be loaded here -->
+        <% if (typeof wishlistItems !== 'undefined' && wishlistItems.length > 0) { %>
+          <div class="wishlist-grid">
+            <% wishlistItems.forEach(item => { %>
+              <div class="wishlist-card" id="wish-item-<%= item.wish_id %>">
+                <div class="cart-item-image" style="width: 100%; height: 150px; margin-bottom: 1rem;">
+                  <% if (item.image) { %>
+                    <img src="<%= item.image %>" alt="<%= item.name %>">
+                  <% } else { %>
+                    <span class="placeholder-icon" style="font-size: 3rem;">📦</span>
+                  <% } %>
+                </div>
+                <h3><%= item.name %></h3>
+                <div class="price">$<%= parseFloat(item.price).toFixed(2) %></div>
+                <div class="actions">
+                  <a href="/products/<%= item.id %>" class="view-order-btn" style="text-align: center;">View</a>
+                  <button onclick="removeFromWishlist(<%= item.wish_id %>)" class="remove-btn">Remove</button>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } else { %>
+          <p class="empty-message">Your wishlist is empty.</p>
+          <div style="text-align: center;">
+            <a href="/" class="view-order-btn">Browse Products</a>
+          </div>
+        <% } %>
       </div>
     </div>
   </div>
@@ -299,6 +332,30 @@
   </footer>
 
   <script>
+    function removeFromWishlist(wishId) {
+      if (confirm('Are you sure you want to remove this from your wishlist?')) {
+        fetch('/user/wishlist/remove/' + wishId, {
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const item = document.getElementById('wish-item-' + wishId);
+            item.remove();
+            
+            // Update counts if needed or just reload
+            location.reload();
+          } else {
+            alert(data.error || 'Error removing from wishlist');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          alert('Error removing from wishlist');
+        });
+      }
+    }
+
     function switchTab(tabName) {
       // Hide all tabs
       const tabs = document.querySelectorAll('.tab-content');
@@ -309,11 +366,26 @@
       buttons.forEach(btn => btn.classList.remove('active'));
       
       // Show selected tab
-      document.getElementById(tabName).classList.add('active');
+      const selectedTab = document.getElementById(tabName);
+      if (selectedTab) {
+        selectedTab.classList.add('active');
+      }
       
       // Add active class to clicked button
-      event.target.classList.add('active');
+      const activeBtn = Array.from(buttons).find(btn => btn.getAttribute('onclick').includes(tabName));
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
     }
+
+    // Handle tab from URL on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      if (tab) {
+        switchTab(tab);
+      }
+    });
   </script>
 </body>
 </html>
