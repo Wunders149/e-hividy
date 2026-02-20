@@ -2,17 +2,35 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Get all products
+// Get all products with search and sort
 router.get('/', async (req, res) => {
   try {
+    const { search = '', sort = '' } = req.query;
     const connection = await db.getConnection();
-    const [products] = await connection.query('SELECT * FROM products');
+    
+    let query = 'SELECT * FROM products WHERE 1=1';
+    const params = [];
+
+    if (search) {
+      query += ' AND (name LIKE ? OR description LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    switch (sort) {
+      case 'name-asc': query += ' ORDER BY name ASC'; break;
+      case 'name-desc': query += ' ORDER BY name DESC'; break;
+      case 'price-asc': query += ' ORDER BY price ASC'; break;
+      case 'price-desc': query += ' ORDER BY price DESC'; break;
+      default: query += ' ORDER BY id DESC';
+    }
+
+    const [products] = await connection.query(query, params);
     connection.release();
     
-    res.render('index', { products, user: req.session.user || null });
+    res.render('index', { products, user: req.session.user || null, search });
   } catch (error) {
     console.error('Error fetching products:', error);
-    res.status(500).render('index', { products: [], user: req.session.user || null });
+    res.status(500).render('index', { products: [], user: req.session.user || null, search: '' });
   }
 });
 

@@ -8,12 +8,30 @@
 </head>
 <body>
   <nav>
-    <h1>Shop</h1>
-    <ul>
+    <div class="nav-brand">
+      <a href="/" style="color: white; text-decoration: none;"><h1>🛍️ Shop</h1></a>
+    </div>
+    
+    <div class="nav-search">
+      <form action="/" method="GET">
+        <input type="text" name="search" placeholder="Search products..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+        <button type="submit">🔍</button>
+      </form>
+    </div>
+
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <ul id="navMenu">
       <li><a href="/">Home</a></li>
       <li><a href="/auth/register-page">Register</a></li>
     </ul>
   </nav>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('active');
+    }
+  </script>
 
   <div class="auth-container">
     <h2>Login</h2>

@@ -34,6 +34,7 @@ app.use((req, res, next) => {
   } else {
     res.locals.user = null;
   }
+  res.locals.search = req.query.search || '';
   next();
 });
 
@@ -76,6 +77,16 @@ app.locals.formatDateTime = (dateString) => {
   });
 };
 
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Test route
+app.get('/test', (req, res) => {
+  res.render('index', { products: [], user: null });
+});
+
 // Routes
 app.use('/auth', require('./routes/auth'));
 app.use('/products', require('./routes/products'));
@@ -83,6 +94,55 @@ app.use('/cart', require('./routes/cart'));
 app.use('/checkout', require('./routes/checkout'));
 app.use('/user', require('./routes/user'));
 app.use('/admin', require('./routes/admin'));
+
+// Home page with search and sort
+app.get('/', async (req, res, next) => {
+  try {
+    const connection = await db.getConnection();
+    const { search = '', sort = '' } = req.query;
+
+    let query = 'SELECT * FROM products WHERE 1=1';
+    const params = [];
+
+    // Search functionality
+    if (search) {
+      query += ' AND (name LIKE ? OR description LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    // Sort functionality
+    switch (sort) {
+      case 'name-asc':
+        query += ' ORDER BY name ASC';
+        break;
+      case 'name-desc':
+        query += ' ORDER BY name DESC';
+        break;
+      case 'price-asc':
+        query += ' ORDER BY price ASC';
+        break;
+      case 'price-desc':
+        query += ' ORDER BY price DESC';
+        break;
+      default:
+        query += ' ORDER BY id DESC';
+    }
+
+    query += ' LIMIT 12';
+
+    const [products] = await connection.query(query, params);
+    connection.release();
+    return res.render('index', { products, user: req.session.user || null, search });
+  } catch (error) {
+    console.error('Error in home route:', error.message, error.stack);
+    try {
+      return res.render('index', { products: [], user: req.session.user || null, search: '' });
+    } catch (renderError) {
+      console.error('Render error:', renderError);
+      return res.status(500).send('Error loading page');
+    }
+  }
+});
 
 // 404 handler for undefined routes
 app.use((req, res, next) => {

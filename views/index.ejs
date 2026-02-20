@@ -271,7 +271,17 @@
 </head>
 <body>
   <nav>
-    <h1>🛍️ Shop</h1>
+    <div class="nav-brand">
+      <a href="/" style="color: white; text-decoration: none;"><h1>🛍️ Shop</h1></a>
+    </div>
+    
+    <div class="nav-search">
+      <form action="/" method="GET">
+        <input type="text" name="search" placeholder="Search products..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+        <button type="submit">🔍</button>
+      </form>
+    </div>
+
     <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     <ul id="navMenu">
       <li><a href="/">Home</a></li>
@@ -291,57 +301,54 @@
     <p>Find quality products at great prices</p>
   </div>
 
-  <div class="search-filter-container">
-    <form method="GET" action="/" class="search-box">
-      <input type="text" name="search" placeholder="Search products..." value="<%= typeof search !== 'undefined' ? search : '' %>">
-      <button type="submit">Search</button>
-    </form>
-    
-    <div class="sort-box">
-      <select onchange="location.href='/?sort=' + this.value + (document.querySelector('input[name=search]') ? '&search=' + document.querySelector('input[name=search]').value : '')">
-        <option value="">Sort by</option>
-        <option value="name-asc">Name (A-Z)</option>
-        <option value="name-desc">Name (Z-A)</option>
-        <option value="price-asc">Price (Low to High)</option>
-        <option value="price-desc">Price (High to Low)</option>
-      </select>
+  <main>
+    <div class="search-filter-container" style="justify-content: flex-end; display: flex;">
+      <div class="sort-box">
+        <select onchange="location.href='/?sort=' + this.value + (document.querySelector('input[name=search]') ? '&search=' + document.querySelector('input[name=search]').value : '')">
+          <option value="">Sort by</option>
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="price-asc">Price (Low to High)</option>
+          <option value="price-desc">Price (High to Low)</option>
+        </select>
+      </div>
     </div>
-  </div>
 
-  <div class="products-container">
-    <% if (products && products.length > 0) { %>
-      <div class="products">
-        <% products.forEach(product => { %>
-          <div class="product-card">
-            <div class="product-image">
-              <% if (product.image) { %>
-                <img src="<%= product.image %>" alt="<%= product.name %>">
-              <% } else { %>
-                📦
-              <% } %>
+    <div class="products-container">
+      <% if (products && products.length > 0) { %>
+        <div class="products">
+          <% products.forEach(product => { %>
+            <div class="product-card">
+              <div class="product-image">
+                <% if (product.image) { %>
+                  <img src="<%= product.image %>" alt="<%= product.name %>">
+                <% } else { %>
+                  📦
+                <% } %>
+              </div>
+              <h3><%= product.name %></h3>
+              <p><%= product.description.substring(0, 100) %>...</p>
+              <div class="price">$<%= parseFloat(product.price).toFixed(2) %></div>
+              <div class="stock">Stock: <%= product.stock > 0 ? product.stock : 'Out of Stock' %></div>
+              <div class="product-actions">
+                <a href="/products/<%= product.id %>" class="btn btn-primary">View</a>
+                <% if (user) { %>
+                  <button class="btn btn-secondary" onclick="addWishlist(<%= product.id %>)">♡</button>
+                <% } else { %>
+                  <a href="/auth/login-page" class="btn btn-secondary">♡</a>
+                <% } %>
+              </div>
             </div>
-            <h3><%= product.name %></h3>
-            <p><%= product.description.substring(0, 100) %>...</p>
-            <div class="price">$<%= parseFloat(product.price).toFixed(2) %></div>
-            <div class="stock">Stock: <%= product.stock > 0 ? product.stock : 'Out of Stock' %></div>
-            <div class="product-actions">
-              <a href="/products/<%= product.id %>" class="btn btn-primary">View</a>
-              <% if (user) { %>
-                <button class="btn btn-secondary" onclick="addWishlist(<%= product.id %>)">♡</button>
-              <% } else { %>
-                <a href="/auth/login-page" class="btn btn-secondary">♡</a>
-              <% } %>
-            </div>
-          </div>
-        <% }); %>
-      </div>
-    <% } else { %>
-      <div class="no-products">
-        <h3>No products found</h3>
-        <p>Try a different search or browse all products</p>
-      </div>
-    <% } %>
-  </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="no-products">
+          <h3>No products found</h3>
+          <p>Try a different search or browse all products</p>
+        </div>
+      <% } %>
+    </div>
+  </main>
 
   <footer>
     <p>&copy; 2026 Shop. All rights reserved.</p>
