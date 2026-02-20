@@ -23,6 +23,7 @@
       <table>
         <thead>
           <tr>
+            <th>Image</th>
             <th>Product</th>
             <th>Price</th>
             <th>Quantity</th>
@@ -33,6 +34,9 @@
         <tbody>
           <% cartItems.forEach(item => { %>
             <tr>
+              <td>
+                <img src="<%= item.image || '/images/placeholder.png' %>" alt="<%= item.name %>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+              </td>
               <td><%= item.name %></td>
               <td>$<%= item.price %></td>
               <td><%= item.quantity %></td>

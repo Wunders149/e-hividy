@@ -2,6 +2,29 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+});
 
 // Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
@@ -140,14 +163,15 @@ router.get('/products/add', isAdmin, (req, res) => {
 });
 
 // Create product
-router.post('/products/add', isAdmin, async (req, res) => {
+router.post('/products/add', isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { name, description, price, stock } = req.body;
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     if (!name || !description || !price || stock === '') {
       return res.render('admin/product-form', {
         admin: req.session.admin,
-        product: req.body,
+        product: { ...req.body, image: imagePath },
         isEdit: false,
         message: 'All fields are required'
       });
@@ -155,8 +179,8 @@ router.post('/products/add', isAdmin, async (req, res) => {
 
     const connection = await db.getConnection();
     await connection.query(
-      'INSERT INTO products (name, description, price, stock) VALUES (?, ?, ?, ?)',
-      [name, description, parseFloat(price), parseInt(stock)]
+      'INSERT INTO products (name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)',
+      [name, description, parseFloat(price), parseInt(stock), imagePath]
     );
     connection.release();
 
@@ -167,7 +191,7 @@ router.post('/products/add', isAdmin, async (req, res) => {
       admin: req.session.admin,
       product: req.body,
       isEdit: false,
-      message: 'Error creating product'
+      message: error.message || 'Error creating product'
     });
   }
 });
@@ -196,9 +220,14 @@ router.get('/products/edit/:id', isAdmin, async (req, res) => {
 });
 
 // Update product
-router.post('/products/edit/:id', isAdmin, async (req, res) => {
+router.post('/products/edit/:id', isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { name, description, price, stock } = req.body;
+    let imagePath = null;
+
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+    }
 
     if (!name || !description || !price || stock === '') {
       const connection = await db.getConnection();
@@ -214,10 +243,17 @@ router.post('/products/edit/:id', isAdmin, async (req, res) => {
     }
 
     const connection = await db.getConnection();
-    await connection.query(
-      'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
-      [name, description, parseFloat(price), parseInt(stock), req.params.id]
-    );
+    if (imagePath) {
+      await connection.query(
+        'UPDATE products SET name = ?, description = ?, price = ?, stock = ?, image = ? WHERE id = ?',
+        [name, description, parseFloat(price), parseInt(stock), imagePath, req.params.id]
+      );
+    } else {
+      await connection.query(
+        'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
+        [name, description, parseFloat(price), parseInt(stock), req.params.id]
+      );
+    }
     connection.release();
 
     res.redirect('/admin/products');

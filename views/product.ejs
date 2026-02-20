@@ -22,6 +22,11 @@
 
   <main>
     <div class="product-details">
+      <% if (product.image) { %>
+        <div class="product-image-container">
+          <img src="<%= product.image %>" alt="<%= product.name %>" class="main-product-image">
+        </div>
+      <% } %>
       <h2><%= product.name %></h2>
       <p class="description"><%= product.description %></p>
       <p class="price">Price: $<%= product.price %></p>
@@ -76,6 +81,25 @@
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin: 2rem auto;
+    }
+    
+    .product-image-container {
+      width: 100%;
+      height: 400px;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+    }
+
+    .main-product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
     
     .description {
