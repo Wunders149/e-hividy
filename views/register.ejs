@@ -7,8 +7,19 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <nav>
+    <h1>Shop</h1>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/auth/login-page">Login</a></li>
+    </ul>
+  </nav>
+
   <div class="auth-container">
     <h2>Register</h2>
+    <% if (message) { %>
+      <div class="message"><%= message %></div>
+    <% } %>
     <form method="POST" action="/auth/register">
       <label for="name">Name:</label>
       <input type="text" id="name" name="name" required>
@@ -24,7 +35,18 @@
 
       <button type="submit">Register</button>
     </form>
-    <p>Already have an account? <a href="/login">Login here</a></p>
+    <p>Already have an account? <a href="/auth/login-page">Login here</a></p>
   </div>
+
+  <style>
+    .message {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+    }
+  </style>
 </body>
 </html>

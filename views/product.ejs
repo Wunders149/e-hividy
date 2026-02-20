@@ -11,18 +11,93 @@
     <h1>Shop</h1>
     <ul>
       <li><a href="/">Home</a></li>
-      <li><a href="/cart">Cart</a></li>
-      <li><a href="/logout">Logout</a></li>
+      <% if (user) { %>
+        <li><a href="/cart">Cart</a></li>
+        <li><a href="/auth/logout">Logout</a></li>
+      <% } else { %>
+        <li><a href="/auth/login-page">Login</a></li>
+      <% } %>
     </ul>
   </nav>
 
   <main>
     <div class="product-details">
       <h2><%= product.name %></h2>
-      <p><%= product.description %></p>
-      <p>Price: $<%= product.price %></p>
-      <button>Add to Cart</button>
+      <p class="description"><%= product.description %></p>
+      <p class="price">Price: $<%= product.price %></p>
+      <p class="stock">Stock Available: <%= product.stock %></p>
+      
+      <% if (user) { %>
+        <form id="addToCartForm" style="margin-top: 2rem;">
+          <label for="quantity">Quantity:</label>
+          <input type="number" id="quantity" name="quantity" min="1" max="<%= product.stock %>" value="1" required>
+          <button type="submit" style="margin-left: 1rem;">Add to Cart</button>
+        </form>
+      <% } else { %>
+        <p><a href="/auth/login-page">Login to add to cart</a></p>
+      <% } %>
+      
+      <a href="/" style="display: inline-block; margin-top: 2rem;">Back to Products</a>
     </div>
   </main>
+
+  <script>
+    document.getElementById('addToCartForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const quantity = document.getElementById('quantity').value;
+      const productId = '<%= product.id %>';
+      
+      try {
+        const response = await fetch('/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ productId, quantity: parseInt(quantity) })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          alert('Product added to cart!');
+        } else {
+          alert(data.error || 'Error adding to cart');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error adding to cart');
+      }
+    });
+  </script>
+
+  <style>
+    .product-details {
+      max-width: 800px;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .description {
+      margin: 1rem 0;
+      line-height: 1.6;
+    }
+    
+    .price {
+      font-size: 2rem;
+      color: #28a745;
+      font-weight: bold;
+    }
+    
+    .stock {
+      color: #666;
+      font-size: 1.1rem;
+    }
+    
+    input[type="number"] {
+      padding: 0.5rem;
+      width: 100px;
+    }
+  </style>
 </body>
 </html>
