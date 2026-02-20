@@ -4,234 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Details</title>
-  <link rel="stylesheet" href="/style.css">
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    
-    .admin-container {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      min-height: 100vh;
-    }
-    
-    .admin-sidebar {
-      background-color: #2c3e50;
-      color: white;
-      padding: 2rem 0;
-      position: fixed;
-      width: 250px;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    
-    .admin-sidebar h2 {
-      padding: 0 1.5rem;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 1rem;
-    }
-    
-    .admin-sidebar ul {
-      list-style: none;
-    }
-    
-    .admin-sidebar li {
-      margin: 0.5rem 0;
-    }
-    
-    .admin-sidebar a {
-      display: block;
-      padding: 1rem 1.5rem;
-      color: #ecf0f1;
-      text-decoration: none;
-      transition: background-color 0.3s;
-    }
-    
-    .admin-sidebar a:hover,
-    .admin-sidebar a.active {
-      background-color: #667eea;
-      border-left: 3px solid #fff;
-    }
-    
-    .admin-main {
-      margin-left: 250px;
-      padding: 2rem;
-    }
-    
-    .order-container {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-    }
-    
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid #ddd;
-    }
-    
-    .order-header h1 {
-      margin: 0;
-    }
-    
-    .status-badge {
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      font-weight: bold;
-    }
-    
-    .status-completed {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    
-    .status-pending {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-    
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-    
-    .info-section h2 {
-      font-size: 1.2rem;
-      margin-top: 0;
-      margin-bottom: 1rem;
-      color: #333;
-    }
-    
-    .info-item {
-      margin-bottom: 1rem;
-    }
-    
-    .info-label {
-      font-weight: bold;
-      color: #666;
-      font-size: 0.9rem;
-    }
-    
-    .info-value {
-      color: #333;
-      margin-top: 0.3rem;
-    }
-    
-    .items-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 2rem 0;
-    }
-    
-    .items-table th,
-    .items-table td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    
-    .items-table th {
-      background-color: #f9f9f9;
-      font-weight: bold;
-    }
-    
-    .summary-box {
-      background-color: #f9f9f9;
-      padding: 1.5rem;
-      border-radius: 4px;
-      margin-top: 2rem;
-    }
-    
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-    }
-    
-    .summary-total {
-      border-top: 2px solid #333;
-      padding-top: 1rem;
-      font-size: 1.3rem;
-      font-weight: bold;
-    }
-    
-    .back-btn {
-      background-color: #6c757d;
-      color: white;
-      padding: 0.7rem 1.5rem;
-      border-radius: 4px;
-      text-decoration: none;
-      display: inline-block;
-      margin-bottom: 2rem;
-    }
-    
-    .back-btn:hover {
-      background-color: #5a6268;
-    }
-  </style>
+  <link rel="stylesheet" href="/admin.css">
 </head>
 <body>
+  <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
+  
   <div class="admin-container">
-    <div class="admin-sidebar">
-      <h2>Admin Panel</h2>
+    <aside class="admin-sidebar" id="adminSidebar">
+      <h2>🔧 Admin</h2>
       <ul>
-        <li><a href="/admin/dashboard">Dashboard</a></li>
-        <li><a href="/admin/products">Products</a></li>
-        <li><a href="/admin/orders" class="active">Orders</a></li>
-        <li><a href="/">View Store</a></li>
-        <li><a href="/admin/logout">Logout</a></li>
+        <li><a href="/admin/dashboard">📊 Dashboard</a></li>
+        <li><a href="/admin/products">📦 Products</a></li>
+        <li><a href="/admin/orders" class="active">📋 Orders</a></li>
+        <li><a href="/admin/logout">🚪 Logout</a></li>
       </ul>
-    </div>
+    </aside>
 
-    <div class="admin-main">
-      <a href="/admin/orders" class="back-btn">← Back to Orders</a>
-      
-      <div class="order-container">
-        <div class="order-header">
+    <main class="admin-main">
+      <div class="dashboard-header">
+        <div>
           <h1>Order #<%= order.id %></h1>
-          <span class="status-badge status-<%= order.status %>"><%= order.status %></span>
+          <span class="status-badge status-<%= order.status %>" style="margin-left: 1rem;">
+            <%= order.status %>
+          </span>
         </div>
+        <a href="/admin/orders" class="admin-btn admin-btn-secondary">← Back to Orders</a>
+      </div>
 
-        <div class="info-grid">
-          <div class="info-section">
-            <h2>Customer Information</h2>
-            <div class="info-item">
-              <div class="info-label">Name</div>
-              <div class="info-value"><%= customer.name %></div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Email</div>
-              <div class="info-value"><%= customer.email %></div>
-            </div>
-          </div>
-
-          <div class="info-section">
-            <h2>Order Information</h2>
-            <div class="info-item">
-              <div class="info-label">Order Date</div>
-              <div class="info-value"><%= new Date(order.created_at).toLocaleString() %></div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Total Amount</div>
-              <div class="info-value" style="font-size: 1.3rem; color: #28a745;">
-                $<%= parseFloat(order.total_amount).toFixed(2) %>
-              </div>
-            </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <div class="admin-section">
+          <h2>Customer Information</h2>
+          <div style="padding: 1rem 0;">
+            <p><strong>Name:</strong> <%= customer.name %></p>
+            <p><strong>Email:</strong> <%= customer.email %></p>
+            <p><strong>Address:</strong> <%= customer.address || 'N/A' %></p>
+            <p><strong>Phone:</strong> <%= customer.phone || 'N/A' %></p>
           </div>
         </div>
 
+        <div class="admin-section">
+          <h2>Order Information</h2>
+          <div style="padding: 1rem 0;">
+            <p><strong>Order Date:</strong> <%= new Date(order.created_at).toLocaleString() %></p>
+            <p><strong>Status:</strong> <%= order.status %></p>
+            <p><strong>Total Amount:</strong> <span style="font-size: 1.3rem; color: #28a745; font-weight: bold;">$<%= parseFloat(order.total_amount).toFixed(2) %></span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-section">
         <h2>Order Items</h2>
         <% if (items.length > 0) { %>
-          <table class="items-table">
+          <table>
             <thead>
               <tr>
                 <th>Product</th>
@@ -243,7 +67,7 @@
             <tbody>
               <% items.forEach(item => { %>
                 <tr>
-                  <td><%= item.name %></td>
+                  <td><strong><%= item.name %></strong></td>
                   <td><%= item.quantity %></td>
                   <td>$<%= parseFloat(item.price).toFixed(2) %></td>
                   <td>$<%= (parseFloat(item.price) * item.quantity).toFixed(2) %></td>
@@ -252,21 +76,34 @@
             </tbody>
           </table>
 
-          <div class="summary-box">
-            <div class="summary-row">
-              <span>Subtotal:</span>
-              <span>$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
+          <div style="margin-top: 2rem; text-align: right; padding: 1.5rem; background-color: #f8f9fa; border-radius: 4px;">
+            <div style="margin-bottom: 0.75rem;">
+              <span style="font-weight: 600;">Subtotal:</span>
+              <span style="float: right;">$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
             </div>
-            <div class="summary-row summary-total">
+            <div style="border-top: 2px solid #ddd; padding-top: 0.75rem; font-size: 1.2rem; font-weight: bold; color: #28a745;">
               <span>Total:</span>
-              <span>$<%= parseFloat(order.total_amount).toFixed(2) %></span>
+              <span style="float: right;">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
             </div>
           </div>
         <% } else { %>
-          <p>No items in this order.</p>
+          <p style="text-align: center; padding: 2rem; color: #999;">No items in this order</p>
         <% } %>
       </div>
-    </div>
+    </main>
   </div>
+
+  <script>
+    function toggleAdminMenu() {
+      const sidebar = document.getElementById('adminSidebar');
+      sidebar.classList.toggle('active');
+    }
+
+    document.querySelectorAll('#adminSidebar a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('adminSidebar').classList.remove('active');
+      });
+    });
+  </script>
 </body>
 </html>

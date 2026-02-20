@@ -4,181 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="/style.css">
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    
-    .admin-container {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      min-height: 100vh;
-    }
-    
-    .admin-sidebar {
-      background-color: #2c3e50;
-      color: white;
-      padding: 2rem 0;
-      position: fixed;
-      width: 250px;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    
-    .admin-sidebar h2 {
-      padding: 0 1.5rem;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 1rem;
-    }
-    
-    .admin-sidebar ul {
-      list-style: none;
-    }
-    
-    .admin-sidebar li {
-      margin: 0.5rem 0;
-    }
-    
-    .admin-sidebar a {
-      display: block;
-      padding: 1rem 1.5rem;
-      color: #ecf0f1;
-      text-decoration: none;
-      transition: background-color 0.3s;
-    }
-    
-    .admin-sidebar a:hover,
-    .admin-sidebar a.active {
-      background-color: #667eea;
-      border-left: 3px solid #fff;
-    }
-    
-    .admin-main {
-      margin-left: 250px;
-      padding: 2rem;
-    }
-    
-    .admin-header {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .admin-header h1 {
-      margin: 0;
-    }
-    
-    .admin-header .user-info {
-      text-align: right;
-    }
-    
-    .admin-header .user-info p {
-      margin: 0.5rem 0;
-    }
-    
-    .logout-btn {
-      background-color: #dc3545;
-      color: white;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    
-    .logout-btn:hover {
-      background-color: #c82333;
-    }
-    
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-    
-    .stat-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-    
-    .stat-card h3 {
-      margin: 0 0 1rem 0;
-      color: #666;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-    }
-    
-    .stat-card .number {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #667eea;
-    }
-    
-    .recent-orders {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .recent-orders h2 {
-      margin-top: 0;
-    }
-    
-    .orders-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    .orders-table th,
-    .orders-table td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    
-    .orders-table th {
-      background-color: #f9f9f9;
-      font-weight: bold;
-    }
-    
-    .orders-table tr:hover {
-      background-color: #f5f5f5;
-    }
-  </style>
+  <link rel="stylesheet" href="/admin.css">
 </head>
 <body>
+  <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
+  
   <div class="admin-container">
-    <div class="admin-sidebar">
-      <h2>Admin Panel</h2>
+    <aside class="admin-sidebar" id="adminSidebar">
+      <h2>🔧 Admin</h2>
       <ul>
-        <li><a href="/admin/dashboard" class="active">Dashboard</a></li>
-        <li><a href="/admin/products">Products</a></li>
-        <li><a href="/admin/orders">Orders</a></li>
-        <li><a href="/">View Store</a></li>
-        <li><a href="/admin/logout">Logout</a></li>
+        <li><a href="/admin/dashboard" class="active">📊 Dashboard</a></li>
+        <li><a href="/admin/products">📦 Products</a></li>
+        <li><a href="/admin/orders">📋 Orders</a></li>
+        <li><a href="/admin/logout">🚪 Logout</a></li>
       </ul>
-    </div>
+    </aside>
 
-    <div class="admin-main">
-      <div class="admin-header">
+    <main class="admin-main">
+      <div class="dashboard-header">
         <h1>Dashboard</h1>
-        <div class="user-info">
-          <p>Welcome, <strong><%= admin.name %></strong></p>
-          <a href="/admin/logout" class="logout-btn">Logout</a>
-        </div>
+        <a href="/admin/products/add" class="admin-btn">+ Add Product</a>
       </div>
 
       <div class="stats-grid">
@@ -200,10 +45,10 @@
         </div>
       </div>
 
-      <div class="recent-orders">
+      <div class="admin-section">
         <h2>Recent Orders</h2>
         <% if (recentOrders.length > 0) { %>
-          <table class="orders-table">
+          <table>
             <thead>
               <tr>
                 <th>Order ID</th>
@@ -216,20 +61,34 @@
             <tbody>
               <% recentOrders.forEach(order => { %>
                 <tr>
-                  <td>#<%= order.id %></td>
+                  <td><strong>#<%= order.id %></strong></td>
                   <td><%= order.customer_name %></td>
                   <td>$<%= parseFloat(order.total_amount).toFixed(2) %></td>
                   <td><%= new Date(order.created_at).toLocaleDateString() %></td>
-                  <td><a href="/admin/orders/<%= order.id %>">View</a></td>
+                  <td><a href="/admin/orders/<%= order.id %>" class="view-btn">View</a></td>
                 </tr>
               <% }); %>
             </tbody>
           </table>
         <% } else { %>
-          <p>No orders yet.</p>
+          <p style="text-align: center; padding: 2rem; color: #999;">No orders yet</p>
         <% } %>
       </div>
-    </div>
+    </main>
   </div>
+
+  <script>
+    function toggleAdminMenu() {
+      const sidebar = document.getElementById('adminSidebar');
+      sidebar.classList.toggle('active');
+    }
+
+    // Close menu when a link is clicked
+    document.querySelectorAll('#adminSidebar a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('adminSidebar').classList.remove('active');
+      });
+    });
+  </script>
 </body>
 </html>

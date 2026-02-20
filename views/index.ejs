@@ -34,10 +34,11 @@
     
     .search-box input {
       flex: 1;
-      padding: 0.7rem;
+      padding: 0.75rem;
       border: 2px solid #ddd;
       border-radius: 4px;
       font-size: 1rem;
+      min-height: 44px;
     }
     
     .search-box input:focus {
@@ -46,13 +47,15 @@
     }
     
     .search-box button {
-      padding: 0.7rem 1.5rem;
+      padding: 0.75rem 1.5rem;
       background-color: #667eea;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
+      min-height: 44px;
+      white-space: nowrap;
     }
     
     .search-box button:hover {
@@ -60,11 +63,13 @@
     }
     
     .sort-box select {
-      padding: 0.7rem;
+      padding: 0.75rem;
       border: 2px solid #ddd;
       border-radius: 4px;
       font-size: 1rem;
       cursor: pointer;
+      min-height: 44px;
+      background-color: white;
     }
     
     .sort-box select:focus {
@@ -78,10 +83,19 @@
       padding: 0 1rem;
     }
     
-    .products {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 2rem;
+    @media (max-width: 768px) {
+      .search-filter-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .search-box {
+        flex-direction: column;
+      }
+
+      .products-container {
+        padding: 0 0.75rem;
+      }
     }
     
     .product-card {
@@ -145,7 +159,7 @@
     
     .btn {
       flex: 1;
-      padding: 0.5rem;
+      padding: 0.6rem 0.5rem;
       text-align: center;
       text-decoration: none;
       border-radius: 4px;
@@ -153,6 +167,10 @@
       border: none;
       cursor: pointer;
       transition: background-color 0.3s;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .btn-primary {
@@ -180,21 +198,75 @@
     }
     
     @media (max-width: 768px) {
-      .search-filter-container {
-        grid-template-columns: 1fr;
+      .products-header {
+        padding: 2rem 0.75rem;
       }
-      
-      .products {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 1rem;
+
+      .products-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .products-header p {
+        font-size: 0.95rem;
+      }
+
+      .product-card {
+        padding: 1rem;
+      }
+
+      .product-card h3 {
+        font-size: 1rem;
+      }
+
+      .product-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .btn {
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        min-height: 44px;
+      }
+
+      .no-products {
+        padding: 2rem 1rem;
       }
     }
+
+    @media (max-width: 480px) {
+      .products-header {
+        padding: 1.5rem 0.5rem;
+      }
+
+      .products-header h2 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .products-header p {
+        font-size: 0.9rem;
+      }
+
+      h2, h3 {
+        font-size: 0.95rem;
+      }
+
+      .product-card {
+        padding: 0.75rem;
+      }
+
+      .btn {
+        padding: 0.65rem;
+        font-size: 0.85rem;
+      }
   </style>
 </head>
 <body>
   <nav>
-    <h1>Shop</h1>
-    <ul>
+    <h1>🛍️ Shop</h1>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <ul id="navMenu">
       <li><a href="/">Home</a></li>
       <% if (user) { %>
         <li><a href="/user/account">Account</a></li>
@@ -263,6 +335,18 @@
   </footer>
 
   <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('active');
+    }
+
+    // Close menu when a link is clicked
+    document.querySelectorAll('#navMenu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navMenu').classList.remove('active');
+      });
+    });
+
     function addWishlist(productId) {
       fetch('/user/wishlist/add', {
         method: 'POST',
