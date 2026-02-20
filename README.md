@@ -1,213 +1,133 @@
-# E-Hividy E-Commerce Shop
+# Boutique E-Commerce E-Hividy
 
-A complete e-commerce web application built with Node.js, Express.js, and MySQL.
+Une application web e-commerce complète construite avec Node.js, Express.js et MySQL.
 
-## Features
+## Fonctionnalités
 
-- **User Authentication**: Register and Login with password encryption
-- **Product Catalog**: Browse products with detailed information
-- **Shopping Cart**: Add/remove items from cart
-- **Checkout**: Complete order placement with shipping information
-- **Order Management**: View order history (extensible)
-- **Responsive Design**: Works on desktop and mobile devices
-- **Session Management**: Secure user sessions
+- **Authentification des Utilisateurs** : Inscription et Connexion avec cryptage des mots de passe.
+- **Catalogue de Produits** : Parcourir les produits avec des informations détaillées, recherche et tri.
+- **Panier d'Achat** : Ajouter/supprimer des articles du panier.
+- **Paiement (Checkout)** : Passer une commande avec les informations de livraison.
+- **Gestion du Compte** : Consulter l'historique des commandes et gérer sa liste de souhaits (Wishlist).
+- **Liste de Souhaits (Wishlist)** : Sauvegarder des produits pour plus tard.
+- **Panneau d'Administration** : Gérer les produits, voir les statistiques et les commandes.
+- **Design Réactif** : Fonctionne sur les ordinateurs et les appareils mobiles.
+- **Gestion des Sessions** : Sessions utilisateur sécurisées.
 
-## Prerequisites
+## Prérequis
 
-- Node.js (v12 or higher)
-- XAMPP with MySQL running
-- npm (comes with Node.js)
+- **Node.js** (v14 ou supérieure)
+- **MySQL** (via XAMPP, WAMP ou installation directe)
+- **npm** (inclus avec Node.js)
 
-## Installation
+## Guide d'Installation
 
-1. **Clone or navigate to the project directory**
-   ```bash
-   cd c:\xampp\htdocs\e-hividy
-   ```
+### 1. Cloner ou naviguer vers le répertoire du projet
+```bash
+cd c:\xampp\htdocs\e-hividy
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### 2. Installer les dépendances
+```bash
+npm install
+```
 
-3. **Setup the database**
-   - Make sure MySQL is running in XAMPP
-   - Run the database setup script:
-   ```bash
-   npm run setup
-   ```
-   This will create the database and tables automatically.
+### 3. Configuration de l'environnement
+Copiez le fichier `.env.example` vers un nouveau fichier nommé `.env` :
+```bash
+cp .env.example .env
+```
+Éditez le fichier `.env` pour configurer vos accès à la base de données :
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=votre_mot_de_passe
+DB_NAME=shop
+PORT=3000
+SESSION_SECRET=votre_cle_secrete
+```
 
-4. **Start the server**
-   ```bash
-   npm start
-   ```
-   Or for development with auto-reload:
-   ```bash
-   npm run dev
-   ```
+### 4. Initialisation de la base de données
+Assurez-vous que votre serveur MySQL est démarré, puis exécutez le script d'initialisation :
+```bash
+npm run setup
+```
+Ce script créera automatiquement la base de données `shop`, les tables nécessaires et insérera des produits de démonstration ainsi qu'un compte administrateur par défaut.
 
-5. **Access the application**
-   - Open your browser and go to: `http://localhost:3000`
+**Identifiants Admin par défaut :**
+- **Email :** `admin@shop.com`
+- **Mot de passe :** `admin123`
 
-## Project Structure
+### 5. Démarrer le serveur
+Pour démarrer en mode production :
+```bash
+npm start
+```
+Pour le développement (avec rechargement automatique via nodemon) :
+```bash
+npm run dev
+```
+
+### 6. Accéder à l'application
+- **Boutique :** Ouvrez votre navigateur sur `http://localhost:3000`
+- **Administration :** `http://localhost:3000/admin/login`
+
+## Structure du Projet
 
 ```
 e-hividy/
-├── server.js              # Main application file
-├── package.json           # Project dependencies
-├── db-setup.js            # Database initialization script
+├── server.js              # Fichier principal de l'application
+├── db-setup.js            # Script d'initialisation de la base de données
 ├── config/
-│   └── db.js              # Database connection configuration
+│   └── db.js              # Configuration de la connexion MySQL
 ├── routes/
-│   ├── auth.js            # Authentication routes (login, register)
-│   ├── products.js        # Product routes
-│   ├── cart.js            # Shopping cart routes
-│   └── checkout.js        # Checkout and order routes
+│   ├── auth.js            # Routes d'authentification (login, register)
+│   ├── products.js        # Routes des produits (catalogue, détails)
+│   ├── cart.js            # Routes du panier
+│   ├── checkout.js        # Routes de commande et paiement
+│   ├── user.js            # Routes du profil utilisateur (commandes, wishlist)
+│   └── admin.js           # Routes du panneau d'administration
 ├── views/
-│   ├── index.ejs          # Home page with product listing
-│   ├── login.ejs          # Login page
-│   ├── register.ejs       # Registration page
-│   ├── product.ejs        # Product details page
-│   ├── cart.ejs           # Shopping cart page
-│   └── checkout.ejs       # Checkout page
+│   ├── index.ejs          # Page d'accueil (listing produits)
+│   ├── product.ejs        # Détails d'un produit
+│   ├── account.ejs        # Profil utilisateur (Dashboard, Commandes, Wishlist)
+│   ├── cart.ejs           # Page du panier
+│   ├── checkout.ejs       # Page de paiement
+│   └── admin/             # Vues de l'administration
 └── public/
-    └── style.css          # Application styles
+    ├── style.css          # Styles CSS principaux
+    ├── admin.css          # Styles CSS pour l'administration
+    └── uploads/           # Images des produits téléchargées
 ```
 
-## Database Schema
+## Utilisation
 
-### Tables
+### Inscription d'un nouveau compte
+1. Cliquez sur le lien "Register" (ou Inscription).
+2. Remplissez le nom, l'email et le mot de passe.
+3. Validez l'inscription.
 
-1. **users** - User registration and authentication
-   - id, name, email, password, created_at
+### Passer une commande
+1. Ajoutez un ou plusieurs produits au panier.
+2. Allez dans le panier et cliquez sur "Proceed to Checkout".
+3. Remplissez vos informations de livraison.
+4. Confirmez la commande.
 
-2. **products** - Product catalog
-   - id, name, description, price, image, stock, created_at
+### Administration
+1. Connectez-vous via `/admin/login`.
+2. Gérez le stock des produits et visualisez les ventes récentes sur le tableau de bord.
 
-3. **cart** - Shopping cart items
-   - id, user_id, product_id, quantity, created_at
+## Sécurité
 
-4. **orders** - Order records
-   - id, user_id, total_amount, status, created_at
-
-5. **order_items** - Items in each order
-   - id, order_id, product_id, quantity, price
-
-## Usage
-
-### Register a New Account
-1. Click "Register" link
-2. Fill in name, email, password, and confirm password
-3. Click "Register"
-
-### Login
-1. Click "Login" link
-2. Enter email and password
-3. Click "Login"
-
-### Browse Products
-- Home page displays all available products
-- Click "View Details" to see product information
-
-### Add to Cart
-1. Click on a product
-2. Select quantity
-3. Click "Add to Cart"
-
-### Checkout
-1. Go to Shopping Cart
-2. Review cart items
-3. Click "Proceed to Checkout"
-4. Enter shipping information
-5. Click "Place Order"
-
-## Security Features
-
-- Password hashing with bcryptjs
-- Session-based authentication
-- Protected routes that require login
-- SQL injection prevention (using prepared statements)
-- XSS protection through EJS templating
-
-## API Endpoints
-
-### Authentication
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - Login user
-- `GET /auth/logout` - Logout user
-- `GET /auth/login-page` - Show login form
-- `GET /auth/register-page` - Show registration form
-
-### Products
-- `GET /products` - Get all products
-- `GET /products/:id` - Get product details
-
-### Cart
-- `GET /cart` - View cart (requires login)
-- `POST /cart/add` - Add item to cart (requires login)
-- `POST /cart/remove/:id` - Remove item from cart (requires login)
-
-### Checkout
-- `GET /checkout` - Display checkout form (requires login)
-- `POST /checkout/place-order` - Place an order (requires login)
-
-## Sample Products
-
-The database setup includes 12 sample products:
-- Laptop, Smartphone, Tablet
-- Headphones, Camera, Monitor
-- Keyboard, Mouse, Webcam
-- Speaker, Charger, Cable
-
-## Configuration
-
-### Database Connection (config/db.js)
-```javascript
-{
-  host: 'localhost',        // MySQL host
-  user: 'root',             // MySQL username
-  password: '',             // MySQL password
-  database: 'shop',         // Database name
-  connectionLimit: 10       // Max concurrent connections
-}
-```
-
-### Session Settings (server.js)
-- Session timeout: 24 hours
-- Secret key: 'your-secret-key' (change in production)
-
-## Troubleshooting
-
-### MySQL Connection Error
-- Ensure XAMPP MySQL is running
-- Check database credentials in `config/db.js`
-- Database 'shop' must exist (created by db-setup.js)
-
-### Port Already in Use
-- Default port is 3000
-- Change in server.js: `const PORT = process.env.PORT || 3000;`
-
-### Missing Dependencies
-- Run `npm install` again
-- Delete node_modules folder and reinstall if issues persist
-
-## Future Enhancements
-
-- Payment gateway integration
-- Email notifications
-- Order history/tracking
-- Product reviews and ratings
-- Admin panel for product management
-- Search and filtering
-- User profile management
-- Inventory management
-- Analytics dashboard
-
-## License
-
-ISC
+- Hachage des mots de passe avec **bcryptjs**.
+- Protection contre les injections SQL via des requêtes préparées.
+- Sessions sécurisées avec **express-session**.
+- Protection XSS grâce au moteur de template EJS.
 
 ## Support
 
-For issues or questions, please check the application logs or create an issue in your project management system.
+En cas de problème ou de question, veuillez consulter les logs du serveur ou contacter l'équipe de développement.
+
+## Licence
+
+ISC
