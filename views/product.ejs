@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav>
+    <h1>Shop</h1>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/cart">Cart</a></li>
+      <li><a href="/logout">Logout</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="product-details">
+      <h2><%= product.name %></h2>
+      <p><%= product.description %></p>
+      <p>Price: $<%= product.price %></p>
+      <button>Add to Cart</button>
+    </div>
+  </main>
+</body>
+</html>
