@@ -1,27 +1,18 @@
-const mysql = require('mysql');
+const mongoose = require('mongoose');
 
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'shop'
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://razafimahefaphilibert7_db_user:H3ClFMQ7I0KRRuoN@cluster0.sh1mvhi.mongodb.net/shop';
+
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('MongoDB connected!');
+}).catch((err) => {
+  console.error('MongoDB connection error:', err.message);
 });
 
-connection.connect((err) => {
-  if (err) {
-    console.error('MySQL connection error:', err.code);
-    console.log('Retrying connection in 5 seconds...');
-    setTimeout(() => connection.connect(), 5000);
-  } else {
-    console.log('MySQL connected!');
-  }
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB error:', err);
 });
 
-connection.on('error', (err) => {
-  console.error('MySQL error:', err);
-  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-    connection.connect();
-  }
-});
-
-module.exports = connection;
+module.exports = mongoose;
