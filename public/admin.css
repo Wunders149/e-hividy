@@ -1635,21 +1635,140 @@ textarea.form-control {
 
 /* Print Styles */
 @media print {
+  /* Hide sidebar and navigation */
   .admin-sidebar,
   .menu-toggle,
+  .admin-footer {
+    display: none !important;
+  }
+  
+  /* Hide action buttons and interactive elements */
   .page-header-actions,
   .action-buttons,
-  .toast-container {
+  .btn-action,
+  .admin-btn,
+  .toast-container,
+  .modal-overlay {
     display: none !important;
+  }
+  
+  /* Hide form buttons */
+  .form-buttons {
+    display: none !important;
+  }
+  
+  /* Main content adjustments */
+  .admin-container {
+    display: block;
+  }
+  
+  .admin-content-wrapper {
+    width: 100%;
   }
   
   .admin-main {
     padding: 0;
     max-width: none;
+    width: 100%;
   }
   
+  /* Page header - hide actions but keep title */
+  .page-header {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #000;
+  }
+  
+  .page-header h1 {
+    font-size: 18pt;
+    color: #000;
+  }
+  
+  /* Cards and tables */
   .card {
     box-shadow: none;
-    border: 1px solid var(--gray-300);
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+  
+  .card-header {
+    background: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Tables */
+  .table {
+    width: 100%;
+    font-size: 10pt;
+  }
+  
+  .table th {
+    background: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #000;
+  }
+  
+  .table td {
+    color: #000;
+  }
+  
+  /* Stats cards */
+  .stats-grid,
+  .stat-card {
+    break-inside: avoid;
+  }
+  
+  .stat-card {
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    border: 1px solid #ccc;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Order info grid */
+  .order-info-grid,
+  .info-card {
+    break-inside: avoid;
+    border: 1px solid #ccc;
+  }
+  
+  /* Timeline */
+  .timeline-container {
+    break-inside: avoid;
+  }
+  
+  /* Summary stats */
+  .summary-stats-grid {
+    break-inside: avoid;
+  }
+  
+  /* Body and text */
+  body {
+    background: white;
+    color: #000;
+    font-size: 12pt;
+  }
+  
+  /* Links */
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+  
+  /* Page breaks */
+  h1, h2, h3, h4, h5 {
+    break-after: avoid;
+  }
+  
+  img {
+    max-width: 100%;
+    break-inside: avoid;
   }
 }
