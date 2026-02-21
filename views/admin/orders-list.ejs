@@ -1,296 +1,339 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Orders - E-Hividy Admin</title>
-  <link rel="stylesheet" href="/admin.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-  <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
-  
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
+<%- include('partials/head', { title: 'Orders' }) %>
+<%- include('partials/sidebar', { activePage: 'orders' }) %>
 
-  <div class="admin-container">
-    <!-- Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-      <div class="admin-sidebar-header">
-        <h2>
-          <span class="logo-icon">🛍️</span>
-          E-Hividy Admin
-        </h2>
-      </div>
-      
-      <nav class="admin-sidebar-nav">
-        <ul>
-          <li><a href="/admin/dashboard"><span class="icon">📊</span> Dashboard</a></li>
-          <li><a href="/admin/products"><span class="icon">📦</span> Products</a></li>
-          <li><a href="/admin/orders" class="active"><span class="icon">📋</span> Orders</a></li>
-          <li><a href="#" onclick="showLogoutModal(event)"><span class="icon">🚪</span> Logout</a></li>
-        </ul>
-      </nav>
-      
-      <div class="admin-sidebar-footer">
-        <div class="admin-user-info">
-          <div class="admin-user-avatar">
-            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
-          </div>
-          <div class="admin-user-details">
-            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
-            <div class="admin-user-email"><%= admin.email %></div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="admin-main">
-      <div class="page-header">
-        <h1>📋 Manage Orders</h1>
-        <div class="page-header-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="window.print()">
-            🖨️ Print Report
-          </button>
-        </div>
-      </div>
-
-      <!-- Orders Card -->
-      <div class="card">
-        <div class="card-body" style="padding: 0;">
-          <% if (typeof error !== 'undefined' && error) { %>
-            <div class="alert alert-error" style="margin: 1.5rem;">
-              <span>⚠️</span> <%= error %>
-            </div>
-          <% } %>
-
-          <% if (orders && orders.length > 0) { %>
-            <div class="table-responsive">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Email</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% orders.forEach(order => { %>
-                    <tr>
-                      <td>
-                        <strong class="text-primary">#<%= order.id %></strong>
-                      </td>
-                      <td>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                          <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem;">
-                            <%= order.customer_name.charAt(0).toUpperCase() %>
-                          </div>
-                          <span><%= order.customer_name %></span>
-                        </div>
-                      </td>
-                      <td style="color: var(--gray-600); font-size: 0.9rem;">
-                        <%= order.email %>
-                      </td>
-                      <td>
-                        <strong class="text-success">$<%= parseFloat(order.total_amount).toFixed(2) %></strong>
-                      </td>
-                      <td>
-                        <% 
-                          const statusIcons = {
-                            'completed': '✓',
-                            'pending': '⏳',
-                            'processing': '📦',
-                            'shipped': '🚚',
-                            'cancelled': '✕',
-                            'failed': '⚠'
-                          };
-                        %>
-                        <span class="status-badge status-<%= order.status %>">
-                          <%= statusIcons[order.status] || '📋' %> <%= order.status %>
-                        </span>
-                      </td>
-                      <td>
-                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                          <span style="font-size: 0.9rem;"><%= formatDate(order.created_at) %></span>
-                          <span style="font-size: 0.75rem; color: var(--gray-500);"><%= formatTime(order.created_at) %></span>
-                        </div>
-                      </td>
-                      <td>
-                        <a href="/admin/orders/<%= order.id %>" class="btn-action btn-action-view">
-                          👁️ View Details
-                        </a>
-                      </td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Order Summary -->
-            <div style="padding: 1.5rem 2rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), transparent); border-top: 1px solid var(--gray-200);">
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                <div>
-                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Total Orders</div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--dark);"><%= orders.length %></div>
-                </div>
-                <div>
-                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Total Revenue</div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
-                    $<%= orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0).toFixed(2) %>
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Completed</div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
-                    <%= orders.filter(o => o.status === 'completed').length %>
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.25rem;">Pending</div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">
-                    <%= orders.filter(o => o.status === 'pending').length %>
-                  </div>
-                </div>
-              </div>
-            </div>
-          <% } else { %>
-            <div class="empty-state">
-              <div class="empty-state-icon">📭</div>
-              <h3>No Orders Yet</h3>
-              <p>Orders will appear here once customers start making purchases</p>
-              <a href="/admin/dashboard" class="admin-btn">
-                📊 View Dashboard
-              </a>
-            </div>
-          <% } %>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- Logout Confirmation Modal -->
-  <div class="modal-overlay" id="logoutModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>🚪 Confirm Logout</h3>
-        <button class="modal-close" onclick="closeLogoutModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">Cancel</button>
-        <a href="/admin/logout" class="admin-btn admin-btn-danger">Yes, Logout</a>
-      </div>
+<main class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1><i data-lucide="clipboard-list"></i> Orders</h1>
+      <p class="text-muted" style="margin: 0.25rem 0 0 0; font-size: 0.9375rem;">Track and manage customer orders</p>
+    </div>
+    <div class="page-header-actions">
+      <button class="admin-btn admin-btn-secondary" onclick="window.print()">
+        <i data-lucide="printer"></i> Print
+      </button>
     </div>
   </div>
 
-  <script>
-    // Toggle sidebar menu
-    function toggleAdminMenu() {
-      const sidebar = document.getElementById('adminSidebar');
-      sidebar.classList.toggle('active');
+  <!-- Orders Card -->
+  <div class="card">
+    <div class="card-body" style="padding: 0;">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error" style="margin: 1.5rem;">
+          <i data-lucide="alert-circle"></i> <%= error %>
+        </div>
+      <% } %>
+
+      <% if (orders && orders.length > 0) { %>
+        <!-- Orders Summary -->
+        <div class="orders-summary">
+          <div class="summary-item">
+            <div class="summary-icon" style="background: var(--primary-light); color: var(--primary);">
+              <i data-lucide="shopping-bag"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Total Orders</span>
+              <span class="summary-value"><%= orders.length %></span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon" style="background: var(--success-light); color: var(--success);">
+              <i data-lucide="check-circle"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Completed</span>
+              <span class="summary-value"><%= orders.filter(o => o.status === 'completed').length %></span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon" style="background: var(--warning-light); color: var(--warning);">
+              <i data-lucide="clock"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Pending</span>
+              <span class="summary-value"><%= orders.filter(o => o.status === 'pending').length %></span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon" style="background: var(--info-light); color: var(--info);">
+              <i data-lucide="truck"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Processing</span>
+              <span class="summary-value"><%= orders.filter(o => ['processing', 'shipped'].includes(o.status)).length %></span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon" style="background: var(--danger-light); color: var(--danger);">
+              <i data-lucide="x-circle"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Cancelled</span>
+              <span class="summary-value"><%= orders.filter(o => ['cancelled', 'failed'].includes(o.status)).length %></span>
+            </div>
+          </div>
+          <div class="summary-item highlight">
+            <div class="summary-icon" style="background: linear-gradient(135deg, var(--success-light), var(--primary-light)); color: var(--success);">
+              <i data-lucide="dollar-sign"></i>
+            </div>
+            <div class="summary-content">
+              <span class="summary-label">Total Revenue</span>
+              <span class="summary-value text-success">$<%= orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0).toFixed(2) %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 90px;">Order ID</th>
+                <th>Customer</th>
+                <th style="width: 130px;">Amount</th>
+                <th style="width: 130px;">Status</th>
+                <th style="width: 150px;">Date & Time</th>
+                <th style="width: 80px; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach(order => { %>
+                <tr>
+                  <td>
+                    <span class="order-id">#<%= order.id %></span>
+                  </td>
+                  <td>
+                    <div class="customer-info">
+                      <div class="customer-name">
+                        <i data-lucide="user" style="width: 14px; height: 14px; margin-right: 6px; color: var(--gray-400);"></i>
+                        <span class="font-semibold"><%= order.customer_name %></span>
+                      </div>
+                      <div class="customer-email">
+                        <i data-lucide="mail" style="width: 12px; height: 12px; margin-right: 4px; color: var(--gray-400);"></i>
+                        <%= order.email %>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="order-amount">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
+                  </td>
+                  <td>
+                    <%
+                      const statusMap = {
+                        'completed': { icon: 'check-circle', class: 'status-completed', label: 'Completed' },
+                        'pending': { icon: 'clock', class: 'status-pending', label: 'Pending' },
+                        'processing': { icon: 'package', class: 'status-processing', label: 'Processing' },
+                        'shipped': { icon: 'truck', class: 'status-shipped', label: 'Shipped' },
+                        'cancelled': { icon: 'x-circle', class: 'status-cancelled', label: 'Cancelled' },
+                        'failed': { icon: 'alert-circle', class: 'status-failed', label: 'Failed' }
+                      };
+                      const statusInfo = statusMap[order.status] || { icon: 'file-text', class: '', label: order.status };
+                    %>
+                    <span class="status-badge <%= statusInfo.class %>">
+                      <i data-lucide="<%= statusInfo.icon %>"></i>
+                      <%= statusInfo.label %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="datetime-cell">
+                      <span class="order-date"><%= formatDate(order.created_at) %></span>
+                      <span class="order-time"><%= formatTime(order.created_at) %></span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="action-buttons" style="justify-content: flex-end;">
+                      <a href="/admin/orders/<%= order.id %>" class="btn-action btn-action-view" title="View Details">
+                        <i data-lucide="eye"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon-wrapper">
+            <i data-lucide="inbox" class="empty-state-icon"></i>
+          </div>
+          <h3>No Orders Yet</h3>
+          <p>Orders will appear here once customers start making purchases</p>
+          <a href="/admin/dashboard" class="admin-btn">
+            <i data-lucide="layout-dashboard"></i> View Dashboard
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<style>
+  .orders-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition);
+  }
+
+  .summary-item:hover {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+
+  .summary-item.highlight {
+    border-color: var(--success);
+    background: linear-gradient(135deg, var(--white), var(--success-light));
+  }
+
+  .summary-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .summary-icon i {
+    width: 24px;
+    height: 24px;
+  }
+
+  .summary-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .summary-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .summary-value {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1;
+  }
+
+  .order-id {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9375rem;
+  }
+
+  .customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .customer-name {
+    display: flex;
+    align-items: center;
+    font-size: 0.9375rem;
+  }
+
+  .customer-email {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+  }
+
+  .order-amount {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 1rem;
+    background: var(--gray-50);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius);
+    display: inline-block;
+  }
+
+  .datetime-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .order-date {
+    font-size: 0.875rem;
+    color: var(--gray-700);
+    font-weight: 500;
+  }
+
+  .order-time {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+  }
+
+  .empty-state-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .empty-state-icon-wrapper .empty-state-icon {
+    width: 40px;
+    height: 40px;
+    color: var(--primary);
+  }
+
+  @media (max-width: 1024px) {
+    .orders-summary {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .orders-summary {
+      grid-template-columns: repeat(2, 1fr);
     }
 
-    // Close menu when a link is clicked
-    document.querySelectorAll('#adminSidebar a').forEach(link => {
-      link.addEventListener('click', () => {
-        document.getElementById('adminSidebar').classList.remove('active');
-      });
-    });
-
-    // Format date helper
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return diffMins + 'm ago';
-      if (diffHours < 24) return diffHours + 'h ago';
-      if (diffDays < 7) return diffDays + 'd ago';
-      
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-      });
+    .summary-item {
+      padding: 0.75rem;
     }
 
-    // Format time helper
-    function formatTime(dateString) {
-      return new Date(dateString).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit'
-      });
+    .summary-icon {
+      width: 40px;
+      height: 40px;
     }
 
-    // Logout modal functions
-    function showLogoutModal(event) {
-      event.preventDefault();
-      document.getElementById('logoutModal').classList.add('active');
+    .summary-icon i {
+      width: 20px;
+      height: 20px;
     }
 
-    function closeLogoutModal() {
-      document.getElementById('logoutModal').classList.remove('active');
+    .summary-value {
+      font-size: 1.125rem;
     }
+  }
+</style>
 
-    document.getElementById('logoutModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeLogoutModal();
-      }
-    });
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeLogoutModal();
-      }
-    });
-
-    // Toast notification function
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      
-      const icons = {
-        success: '✓',
-        error: '✕',
-        warning: '⚠',
-        info: 'ℹ'
-      };
-      
-      toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span class="toast-message">${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-      `;
-      
-      container.appendChild(toast);
-      
-      // Auto remove after 4 seconds
-      setTimeout(() => {
-        toast.classList.add('toast-hiding');
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
-    }
-
-    // Check for URL parameters to show messages
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get('success');
-    const error = urlParams.get('error');
-    
-    if (success) showToast(decodeURIComponent(success), 'success');
-    if (error) showToast(decodeURIComponent(error), 'error');
-  </script>
-</body>
-</html>
+<%- include('partials/footer') %>
+<%- include('partials/scripts') %>

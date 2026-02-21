@@ -1,0 +1,119 @@
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="logoutModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i data-lucide="log-out"></i> Logout</h3>
+        <button class="modal-close" onclick="closeLogoutModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">
+          <i data-lucide="x"></i> Cancel
+        </button>
+        <a href="/admin/logout" class="admin-btn admin-btn-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Toggle sidebar menu
+    function toggleAdminMenu() {
+      const sidebar = document.getElementById('adminSidebar');
+      sidebar.classList.toggle('active');
+    }
+
+    // Close menu when a link is clicked
+    document.querySelectorAll('#adminSidebar a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('adminSidebar').classList.remove('active');
+      });
+    });
+
+    // Logout modal functions
+    function showLogoutModal(event) {
+      if (event) event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeLogoutModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLogoutModal();
+      }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      const iconMap = {
+        success: 'check-circle',
+        error: 'alert-circle',
+        warning: 'alert-triangle',
+        info: 'info'
+      };
+
+      const iconName = iconMap[type] || 'info';
+
+      toast.innerHTML = `
+        <span class="toast-icon"><i data-lucide="${iconName}"></i></span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+      `;
+
+      container.appendChild(toast);
+
+      // Re-initialize icons for the new toast
+      lucide.createIcons();
+
+      // Auto remove after 4 seconds
+      setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Check for URL parameters to show messages
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+
+    if (success) showToast(decodeURIComponent(success), 'success');
+    if (error) showToast(decodeURIComponent(error), 'error');
+
+    // Add loading state to forms
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn && !submitBtn.disabled) {
+          // Store original content
+          submitBtn.dataset.original = submitBtn.innerHTML;
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i data-lucide="loader" class="spin"></i> Loading...';
+          lucide.createIcons();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>E-Hividy Admin</title>
+  <link rel="stylesheet" href="/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons for a modern look -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <button class="menu-toggle" onclick="toggleAdminMenu()">
+    <i data-lucide="menu"></i>
+  </button>
+  
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>

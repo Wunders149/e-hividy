@@ -1,368 +1,620 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order #<%= order.id %> - E-Hividy Admin</title>
-  <link rel="stylesheet" href="/admin.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-  <button class="menu-toggle" onclick="toggleAdminMenu()">☰</button>
-  
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
+<%- include('partials/head', { title: 'Order #' + order.id }) %>
+<%- include('partials/sidebar', { activePage: 'orders' }) %>
 
-  <div class="admin-container">
-    <!-- Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-      <div class="admin-sidebar-header">
-        <h2>
-          <span class="logo-icon">🛍️</span>
-          E-Hividy Admin
-        </h2>
-      </div>
-      
-      <nav class="admin-sidebar-nav">
-        <ul>
-          <li><a href="/admin/dashboard"><span class="icon">📊</span> Dashboard</a></li>
-          <li><a href="/admin/products"><span class="icon">📦</span> Products</a></li>
-          <li><a href="/admin/orders" class="active"><span class="icon">📋</span> Orders</a></li>
-          <li><a href="#" onclick="showLogoutModal(event)"><span class="icon">🚪</span> Logout</a></li>
-        </ul>
-      </nav>
-      
-      <div class="admin-sidebar-footer">
-        <div class="admin-user-info">
-          <div class="admin-user-avatar">
-            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
-          </div>
-          <div class="admin-user-details">
-            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
-            <div class="admin-user-email"><%= admin.email %></div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="admin-main">
-      <div class="page-header">
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-          <h1 style="margin: 0;">
-            📋 Order #<%= order.id %>
-          </h1>
-          <% 
-            const statusIcons = {
-              'completed': '✓',
-              'pending': '⏳',
-              'processing': '📦',
-              'shipped': '🚚',
-              'cancelled': '✕',
-              'failed': '⚠'
-            };
-          %>
-          <span class="status-badge status-<%= order.status %>">
-            <%= statusIcons[order.status] || '📋' %> <%= order.status %>
-          </span>
-        </div>
-        <div class="page-header-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="window.print()">
-            🖨️ Print
-          </button>
-          <a href="/admin/orders" class="admin-btn admin-btn-secondary">
-            ← Back to Orders
-          </a>
-        </div>
-      </div>
-
-      <!-- Order Info Grid -->
-      <div class="order-info-grid">
-        <!-- Customer Information -->
-        <div class="info-card">
-          <h3>
-            <span>👤</span> Customer Information
-          </h3>
-          <p>
-            <span>Name:</span>
-            <strong><%= customer.name %></strong>
-          </p>
-          <p>
-            <span>Email:</span>
-            <strong><%= customer.email %></strong>
-          </p>
-          <p>
-            <span>Address:</span>
-            <strong><%= order.address || customer.address || 'N/A' %></strong>
-          </p>
-          <p>
-            <span>City:</span>
-            <strong><%= order.city || customer.city || 'N/A' %></strong>
-          </p>
-          <p>
-            <span>State:</span>
-            <strong><%= order.state || customer.state || 'N/A' %></strong>
-          </p>
-          <p>
-            <span>ZIP:</span>
-            <strong><%= order.zip || customer.zip || 'N/A' %></strong>
-          </p>
-        </div>
-
-        <!-- Order Information -->
-        <div class="info-card">
-          <h3>
-            <span>📦</span> Order Information
-          </h3>
-          <p>
-            <span>Order ID:</span>
-            <strong class="text-primary">#<%= order.id %></strong>
-          </p>
-          <p>
-            <span>Order Date:</span>
-            <strong><%= formatDateTime(order.created_at) %></strong>
-          </p>
-          <p>
-            <span>Status:</span>
-            <span class="status-badge status-<%= order.status %>">
-              <%= order.status %>
-            </span>
-          </p>
-          <p>
-            <span>Payment:</span>
-            <strong class="text-success">Paid</strong>
-          </p>
-          <p>
-            <span>Total Amount:</span>
-            <strong style="font-size: 1.4rem; color: var(--success);">
-              $<%= parseFloat(order.total_amount).toFixed(2) %>
-            </strong>
-          </p>
-        </div>
-      </div>
-
-      <!-- Order Items Card -->
-      <div class="card">
-        <div class="card-header">
-          <h2>
-            <span>🛒</span> Order Items
-          </h2>
-          <span style="font-size: 0.9rem; color: var(--gray-600);">
-            <%= items.length %> item<%= items.length !== 1 ? 's' : '' %>
-          </span>
-        </div>
-        <div class="card-body" style="padding: 0;">
-          <% if (items && items.length > 0) { %>
-            <div class="table-responsive">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Unit Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% items.forEach(item => { %>
-                    <tr>
-                      <td>
-                        <strong><%= item.name %></strong>
-                        <div style="font-size: 0.8rem; color: var(--gray-500);">
-                          Product ID: #<%= item.product_id %>
-                        </div>
-                      </td>
-                      <td>
-                        <span class="text-muted">$<%= parseFloat(item.price).toFixed(2) %></span>
-                      </td>
-                      <td>
-                        <span style="background: var(--gray-100); padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 500;">
-                          <%= item.quantity %>
-                        </span>
-                      </td>
-                      <td>
-                        <strong class="text-success">
-                          $<%= (parseFloat(item.price) * item.quantity).toFixed(2) %>
-                        </strong>
-                      </td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Order Summary -->
-            <div class="order-summary">
-              <div class="order-summary-row">
-                <span>Subtotal (<%= items.length %> item<%= items.length !== 1 ? 's' : '' %>)</span>
-                <span>$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
-              </div>
-              <div class="order-summary-row">
-                <span>Shipping</span>
-                <span class="text-success">Free</span>
-              </div>
-              <div class="order-summary-row">
-                <span>Total</span>
-                <span class="text-success">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
-              </div>
-            </div>
-          <% } else { %>
-            <div class="empty-state">
-              <div class="empty-state-icon">📭</div>
-              <h3>No Items</h3>
-              <p>This order doesn't have any items</p>
-            </div>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- Timeline Card -->
-      <div class="card mt-3">
-        <div class="card-header">
-          <h2>
-            <span>🕐</span> Order Timeline
-          </h2>
-        </div>
-        <div class="card-body">
-          <div style="display: flex; flex-direction: column; gap: 1.5rem; position: relative; padding-left: 2rem;">
-            <!-- Timeline line -->
-            <div style="position: absolute; left: 0.75rem; top: 0; bottom: 0; width: 2px; background: var(--gray-200);"></div>
-            
-            <!-- Order placed -->
-            <div style="position: relative;">
-              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--success); border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-              <div style="font-weight: 600; color: var(--dark);">Order Placed</div>
-              <div style="font-size: 0.85rem; color: var(--gray-500);"><%= formatDateTime(order.created_at) %></div>
-            </div>
-            
-            <!-- Order confirmed -->
-            <div style="position: relative;">
-              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: <%= order.status !== 'pending' ? 'var(--success)' : 'var(--gray-300)' %>; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-              <div style="font-weight: 600; color: <%= order.status !== 'pending' ? 'var(--dark)' : 'var(--gray-500)' %>;">Order Confirmed</div>
-              <div style="font-size: 0.85rem; color: var(--gray-500);">Payment received</div>
-            </div>
-            
-            <!-- Processing -->
-            <div style="position: relative;">
-              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: <%= ['completed', 'processing', 'shipped'].includes(order.status) ? 'var(--success)' : 'var(--gray-300)' %>; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-              <div style="font-weight: 600; color: <%= ['completed', 'processing', 'shipped'].includes(order.status) ? 'var(--dark)' : 'var(--gray-500)' %>;">Processing</div>
-              <div style="font-size: 0.85rem; color: var(--gray-500);">Preparing for shipment</div>
-            </div>
-            
-            <!-- Completed -->
-            <div style="position: relative;">
-              <div style="position: absolute; left: -2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: <%= order.status === 'completed' ? 'var(--success)' : 'var(--gray-300)' %>; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-              <div style="font-weight: 600; color: <%= order.status === 'completed' ? 'var(--dark)' : 'var(--gray-500)' %>;">Completed</div>
-              <div style="font-size: 0.85rem; color: var(--gray-500);">Order delivered</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+<main class="admin-main">
+  <div class="page-header">
+    <div class="header-with-status">
+      <h1 class="m-0">
+        <i data-lucide="receipt"></i> Order #<%= order.id %>
+      </h1>
+      <%
+        const statusMap = {
+          'completed': { icon: 'check-circle', class: 'status-completed', label: 'Completed' },
+          'pending': { icon: 'clock', class: 'status-pending', label: 'Pending' },
+          'processing': { icon: 'package', class: 'status-processing', label: 'Processing' },
+          'shipped': { icon: 'truck', class: 'status-shipped', label: 'Shipped' },
+          'cancelled': { icon: 'x-circle', class: 'status-cancelled', label: 'Cancelled' },
+          'failed': { icon: 'alert-circle', class: 'status-failed', label: 'Failed' }
+        };
+        const statusInfo = statusMap[order.status] || { icon: 'file-text', class: '', label: order.status };
+      %>
+      <span class="status-badge <%= statusInfo.class %> status-badge-lg">
+        <i data-lucide="<%= statusInfo.icon %>"></i>
+        <%= statusInfo.label %>
+      </span>
+    </div>
+    <div class="page-header-actions">
+      <button class="admin-btn admin-btn-secondary" onclick="window.print()">
+        <i data-lucide="printer"></i> Print
+      </button>
+      <a href="/admin/orders" class="admin-btn admin-btn-secondary">
+        <i data-lucide="arrow-left"></i> Back
+      </a>
+    </div>
   </div>
 
-  <!-- Logout Confirmation Modal -->
-  <div class="modal-overlay" id="logoutModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>🚪 Confirm Logout</h3>
-        <button class="modal-close" onclick="closeLogoutModal()">×</button>
+  <!-- Order Info Grid -->
+  <div class="order-info-grid">
+    <!-- Customer Information -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <h3><i data-lucide="user"></i> Customer Information</h3>
       </div>
-      <div class="modal-body">
-        <p>Are you sure you want to logout from the admin panel? You will need to login again to access admin features.</p>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="user" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Name
+          </span>
+          <span class="value"><%= customer.name %></span>
+        </div>
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="mail" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Email
+          </span>
+          <span class="value"><%= customer.email %></span>
+        </div>
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Shipping Address
+          </span>
+          <span class="value address-value">
+            <%= order.address || customer.address || 'N/A' %><br>
+            <%= order.city || customer.city || 'N/A' %>,
+            <%= order.state || customer.state || 'N/A' %>
+            <%= order.zip || customer.zip || 'N/A' %>
+          </span>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button class="admin-btn admin-btn-secondary" onclick="closeLogoutModal()">Cancel</button>
-        <a href="/admin/logout" class="admin-btn admin-btn-danger">Yes, Logout</a>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <h3><i data-lucide="info"></i> Order Details</h3>
+      </div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="hash" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Order ID
+          </span>
+          <span class="value order-id-large">#<%= order.id %></span>
+        </div>
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="calendar" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Placed On
+          </span>
+          <span class="value">
+            <span class="order-date-display"><%= formatDate(order.created_at) %></span>
+            <span class="order-time-display"><%= formatTime(order.created_at) %></span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="dollar-sign" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Total Amount
+          </span>
+          <span class="value total-amount">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
+        </div>
+        <div class="info-item">
+          <span class="label">
+            <i data-lucide="credit-card" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+            Payment Status
+          </span>
+          <span class="value">
+            <span class="status-badge status-success payment-badge">
+              <i data-lucide="check-circle"></i>
+              PAID
+            </span>
+          </span>
+        </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // Toggle sidebar menu
-    function toggleAdminMenu() {
-      const sidebar = document.getElementById('adminSidebar');
-      sidebar.classList.toggle('active');
+  <!-- Order Items Card -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2><i data-lucide="shopping-cart"></i> Order Items</h2>
+      <span class="items-count"><%= items.length %> item<%= items.length !== 1 ? 's' : '' %></span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <% if (items && items.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="width: 130px;">Unit Price</th>
+                <th style="width: 100px; text-align: center;">Quantity</th>
+                <th style="width: 130px; text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach(item => { %>
+                <tr>
+                  <td>
+                    <div class="order-item-info">
+                      <span class="item-name"><%= item.name %></span>
+                      <span class="item-sku">SKU: #<%= item.product_id %></span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="item-price">$<%= parseFloat(item.price).toFixed(2) %></span>
+                  </td>
+                  <td>
+                    <span class="item-quantity"><%= item.quantity %></span>
+                  </td>
+                  <td>
+                    <span class="item-subtotal">$<%= (parseFloat(item.price) * item.quantity).toFixed(2) %></span>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="order-summary-box">
+          <div class="summary-breakdown">
+            <div class="summary-row">
+              <span class="label">Subtotal (<%= items.length %> <%= items.length !== 1 ? 'items' : 'item' %>)</span>
+              <span class="value">$<%= items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2) %></span>
+            </div>
+            <div class="summary-row">
+              <span class="label">Shipping</span>
+              <span class="value shipping-free">
+                <i data-lucide="gift"></i>
+                FREE
+              </span>
+            </div>
+            <div class="summary-row total">
+              <span class="label">
+                Total
+                <span class="total-label-hint">Including all taxes</span>
+              </span>
+              <span class="value total-value">$<%= parseFloat(order.total_amount).toFixed(2) %></span>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Timeline Card -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i data-lucide="history"></i> Order Timeline</h2>
+    </div>
+    <div class="card-body">
+      <div class="timeline-container">
+        <div class="timeline-item active">
+          <div class="timeline-dot">
+            <i data-lucide="shopping-bag"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">Order Placed</div>
+            <div class="timeline-date">
+              <%= formatDate(order.created_at) %> at <%= formatTime(order.created_at) %>
+            </div>
+            <div class="timeline-description">Customer completed checkout</div>
+          </div>
+        </div>
+
+        <div class="timeline-item <%= order.status !== 'pending' ? 'active' : '' %>">
+          <div class="timeline-dot">
+            <i data-lucide="credit-card"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">Payment Confirmed</div>
+            <div class="timeline-date">Transaction successful</div>
+            <div class="timeline-description">Payment processed and verified</div>
+          </div>
+        </div>
+
+        <% if (['processing', 'shipped', 'completed'].includes(order.status)) { %>
+        <div class="timeline-item active">
+          <div class="timeline-dot">
+            <i data-lucide="package"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">Processing</div>
+            <div class="timeline-date">Order being prepared</div>
+            <div class="timeline-description">Items picked and packed</div>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (['shipped', 'completed'].includes(order.status)) { %>
+        <div class="timeline-item active">
+          <div class="timeline-dot">
+            <i data-lucide="truck"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">Shipped</div>
+            <div class="timeline-date">Order in transit</div>
+            <div class="timeline-description">On the way to customer</div>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (order.status === 'completed') { %>
+        <div class="timeline-item active">
+          <div class="timeline-dot">
+            <i data-lucide="check-circle"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">Delivered</div>
+            <div class="timeline-date">Order completed</div>
+            <div class="timeline-description">Customer received the order</div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+  .header-with-status {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .status-badge-lg {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .status-badge-lg i {
+    width: 14px;
+    height: 14px;
+  }
+
+  .order-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-card {
+    background: var(--white);
+    padding: 0;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .info-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .info-card-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .info-card-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0;
+  }
+
+  .info-card-header h3 i {
+    color: var(--primary);
+    width: 18px;
+    height: 18px;
+  }
+
+  .info-list {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .info-item:first-child {
+    padding-top: 0;
+  }
+
+  .info-item .label {
+    color: var(--gray-500);
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .info-item .label i {
+    color: var(--gray-400);
+  }
+
+  .info-item .value {
+    font-weight: 600;
+    color: var(--gray-800);
+    text-align: right;
+    font-size: 0.9375rem;
+  }
+
+  .address-value {
+    max-width: 220px;
+    line-height: 1.5;
+  }
+
+  .order-id-large {
+    font-size: 1.125rem;
+    color: var(--primary);
+  }
+
+  .order-date-display {
+    display: block;
+    font-weight: 600;
+  }
+
+  .order-time-display {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+  }
+
+  .total-amount {
+    font-size: 1.25rem;
+    color: var(--success);
+  }
+
+  .payment-badge {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .items-count {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-full);
+  }
+
+  .order-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .item-name {
+    font-weight: 600;
+    color: var(--gray-900);
+    font-size: 0.9375rem;
+  }
+
+  .item-sku {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+  }
+
+  .item-price {
+    color: var(--gray-700);
+    font-size: 0.9375rem;
+  }
+
+  .item-quantity {
+    font-weight: 700;
+    color: var(--gray-900);
+    background: var(--gray-100);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    display: inline-block;
+    text-align: center;
+    min-width: 40px;
+  }
+
+  .item-subtotal {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 1rem;
+  }
+
+  .order-summary-box {
+    padding: 1.5rem;
+    background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .summary-breakdown {
+    max-width: 360px;
+    margin-left: auto;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: var(--gray-600);
+    font-size: 0.9375rem;
+  }
+
+  .summary-row .label {
+    font-weight: 500;
+  }
+
+  .summary-row .value {
+    font-weight: 600;
+  }
+
+  .shipping-free {
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .shipping-free i {
+    width: 16px;
+    height: 16px;
+  }
+
+  .summary-row.total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--gray-300);
+  }
+
+  .summary-row.total .label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .total-label-hint {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-weight: 400;
+    text-transform: none;
+  }
+
+  .summary-row.total .total-value {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  /* Timeline */
+  .timeline-container {
+    padding: 0.5rem 0;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 1.25rem;
+    padding-bottom: 1.75rem;
+    position: relative;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--gray-200);
+  }
+
+  .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .timeline-item:last-child::before {
+    display: none;
+  }
+
+  .timeline-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--gray-200);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 1px var(--gray-200);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    z-index: 1;
+  }
+
+  .timeline-dot i {
+    width: 14px;
+    height: 14px;
+    color: var(--gray-500);
+  }
+
+  .timeline-item.active .timeline-dot {
+    background-color: var(--success);
+    box-shadow: 0 0 0 3px var(--success-light);
+  }
+
+  .timeline-item.active .timeline-dot i {
+    color: white;
+  }
+
+  .timeline-content {
+    flex: 1;
+    min-width: 0;
+    padding-top: 0.25rem;
+  }
+
+  .timeline-title {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: var(--gray-800);
+    margin-bottom: 0.25rem;
+  }
+
+  .timeline-date {
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+    margin-bottom: 0.375rem;
+  }
+
+  .timeline-description {
+    font-size: 0.8125rem;
+    color: var(--gray-600);
+    background: var(--gray-50);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    display: inline-block;
+  }
+
+  @media (max-width: 768px) {
+    .order-info-grid {
+      grid-template-columns: 1fr;
     }
 
-    // Close menu when a link is clicked
-    document.querySelectorAll('#adminSidebar a').forEach(link => {
-      link.addEventListener('click', () => {
-        document.getElementById('adminSidebar').classList.remove('active');
-      });
-    });
-
-    // Format date and time helper
-    function formatDateTime(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+    .header-with-status {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
     }
 
-    // Logout modal functions
-    function showLogoutModal(event) {
-      event.preventDefault();
-      document.getElementById('logoutModal').classList.add('active');
+    .page-header-actions {
+      width: 100%;
     }
 
-    function closeLogoutModal() {
-      document.getElementById('logoutModal').classList.remove('active');
+    .page-header-actions .admin-btn {
+      flex: 1;
+      justify-content: center;
     }
 
-    document.getElementById('logoutModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeLogoutModal();
-      }
-    });
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeLogoutModal();
-      }
-    });
-
-    // Toast notification function
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      
-      const icons = {
-        success: '✓',
-        error: '✕',
-        warning: '⚠',
-        info: 'ℹ'
-      };
-      
-      toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span class="toast-message">${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-      `;
-      
-      container.appendChild(toast);
-      
-      // Auto remove after 4 seconds
-      setTimeout(() => {
-        toast.classList.add('toast-hiding');
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
+    .summary-breakdown {
+      max-width: 100%;
     }
+  }
+</style>
 
-    // Check for URL parameters to show messages
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get('success');
-    const error = urlParams.get('error');
-    
-    if (success) showToast(decodeURIComponent(success), 'success');
-    if (error) showToast(decodeURIComponent(error), 'error');
-  </script>
-</body>
-</html>
+<%- include('partials/footer') %>
+<%- include('partials/scripts') %>

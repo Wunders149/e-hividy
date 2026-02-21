@@ -1,0 +1,52 @@
+<div class="admin-container">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-header">
+      <div class="logo-icon-box">
+        <i data-lucide="shopping-bag" class="logo-icon"></i>
+      </div>
+      <h2>
+        <span>E-Hividy</span>
+      </h2>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <ul>
+        <li>
+          <a href="/admin/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
+            <i data-lucide="layout-dashboard" class="icon"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/products" class="<%= activePage === 'products' ? 'active' : '' %>">
+            <i data-lucide="package" class="icon"></i>
+            <span>Products</span>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/orders" class="<%= activePage === 'orders' ? 'active' : '' %>">
+            <i data-lucide="clipboard-list" class="icon"></i>
+            <span>Orders</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="admin-sidebar-footer">
+      <a href="#" onclick="showLogoutModal(event)" class="logout-link">
+        <div class="admin-user-info">
+          <div class="admin-user-avatar">
+            <%= (admin.name || admin.email || 'A')[0].toUpperCase() %>
+          </div>
+          <div class="admin-user-details">
+            <div class="admin-user-name"><%= admin.name || 'Admin' %></div>
+            <div class="admin-user-email"><%= admin.email %></div>
+          </div>
+        </div>
+        <i data-lucide="log-out" class="logout-icon"></i>
+      </a>
+    </div>
+  </aside>
+
+  <div class="admin-content-wrapper">
