@@ -390,14 +390,19 @@
   }
 </style>
 
+<%- include('partials/footer') %>
+<%- include('partials/scripts') %>
+
 <script>
   // Character counter for description
   const descriptionTextarea = document.getElementById('description');
   const charCount = document.getElementById('charCount');
 
-  descriptionTextarea.addEventListener('input', function() {
-    charCount.textContent = this.value.length;
-  });
+  if (descriptionTextarea && charCount) {
+    descriptionTextarea.addEventListener('input', function() {
+      charCount.textContent = this.value.length;
+    });
+  }
 
   // Image preview handler
   function handleImageSelect(event) {
@@ -419,11 +424,12 @@
         const img = document.getElementById('previewImg');
         const fileName = document.getElementById('imageFileName');
 
-        img.src = e.target.result;
-        fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
-        preview.classList.remove('hidden');
-
-        document.querySelector('.image-upload-text').innerHTML = '<strong>' + file.name + '</strong>';
+        if (img && preview && fileName) {
+          img.src = e.target.result;
+          fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+          preview.classList.remove('hidden');
+          document.querySelector('.image-upload-text').innerHTML = '<strong>' + file.name + '</strong>';
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -433,9 +439,13 @@
     event.stopPropagation();
     event.preventDefault();
 
-    document.getElementById('image').value = '';
-    document.getElementById('imagePreview').classList.add('hidden');
-    document.querySelector('.image-upload-text').innerHTML = '<strong>Click to upload</strong> or drag and drop';
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadText = document.querySelector('.image-upload-text');
+
+    if (imageInput) imageInput.value = '';
+    if (imagePreview) imagePreview.classList.add('hidden');
+    if (uploadText) uploadText.innerHTML = '<strong>Click to upload</strong> or drag and drop';
   }
 
   function formatFileSize(bytes) {
@@ -449,92 +459,93 @@
   // Drag and drop for image upload
   const uploadArea = document.getElementById('imageUploadArea');
 
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('drag-over');
-  });
-
-  uploadArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-  });
-
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('Image size must be less than 5MB', 'error');
-        return;
-      }
-      const input = document.getElementById('image');
-      input.files = e.dataTransfer.files;
-      handleImageSelect({ target: { files: e.dataTransfer.files } });
-    } else {
-      showToast('Please drop an image file', 'error');
-    }
-  });
-
-  // Form validation
-  document.getElementById('productForm').addEventListener('submit', function(e) {
-    const name = document.getElementById('name').value.trim();
-    const description = document.getElementById('description').value.trim();
-    const price = document.getElementById('price').value;
-    const stock = document.getElementById('stock').value;
-
-    // Clear previous errors
-    document.querySelectorAll('.form-control').forEach(el => {
-      el.classList.remove('error');
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('drag-over');
     });
 
-    let hasError = false;
-
-    if (!name || name.length < 3) {
+    uploadArea.addEventListener('dragleave', (e) => {
       e.preventDefault();
-      showToast('Product name must be at least 3 characters', 'error');
-      document.getElementById('name').focus();
-      hasError = true;
-      return false;
-    }
+      uploadArea.classList.remove('drag-over');
+    });
 
-    if (!description || description.length < 10) {
+    uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
-      showToast('Description must be at least 10 characters', 'error');
-      document.getElementById('description').focus();
-      hasError = true;
-      return false;
-    }
+      uploadArea.classList.remove('drag-over');
 
-    if (!price || parseFloat(price) < 0) {
-      e.preventDefault();
-      showToast('Please enter a valid price', 'error');
-      document.getElementById('price').focus();
-      hasError = true;
-      return false;
-    }
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('Image size must be less than 5MB', 'error');
+          return;
+        }
+        const input = document.getElementById('image');
+        if (input) {
+          input.files = e.dataTransfer.files;
+          handleImageSelect({ target: { files: e.dataTransfer.files } });
+        }
+      } else {
+        showToast('Please drop an image file', 'error');
+      }
+    });
+  }
 
-    if (stock === '' || parseInt(stock) < 0) {
-      e.preventDefault();
-      showToast('Please enter a valid stock quantity', 'error');
-      document.getElementById('stock').focus();
-      hasError = true;
-      return false;
-    }
+  // Form validation
+  const productForm = document.getElementById('productForm');
+  if (productForm) {
+    productForm.addEventListener('submit', function(e) {
+      const name = document.getElementById('name').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const price = document.getElementById('price').value;
+      const stock = document.getElementById('stock').value;
 
-    if (!hasError) {
+      // Clear previous errors
+      document.querySelectorAll('.form-control').forEach(el => {
+        el.classList.remove('error');
+      });
+
+      if (!name || name.length < 3) {
+        e.preventDefault();
+        showToast('Product name must be at least 3 characters', 'error');
+        document.getElementById('name').focus();
+        return false;
+      }
+
+      if (!description || description.length < 10) {
+        e.preventDefault();
+        showToast('Description must be at least 10 characters', 'error');
+        document.getElementById('description').focus();
+        return false;
+      }
+
+      if (!price || parseFloat(price) < 0) {
+        e.preventDefault();
+        showToast('Please enter a valid price', 'error');
+        document.getElementById('price').focus();
+        return false;
+      }
+
+      if (stock === '' || parseInt(stock) < 0) {
+        e.preventDefault();
+        showToast('Please enter a valid stock quantity', 'error');
+        document.getElementById('stock').focus();
+        return false;
+      }
+
       const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i data-lucide="loader" class="spin"></i> ' + (isEdit ? 'Updating...' : 'Adding...');
-      lucide.createIcons();
-    }
-  });
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader" class="spin"></i> ' + (typeof isEdit !== 'undefined' && isEdit ? 'Updating...' : 'Adding...');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    });
+  }
 
   // Real-time validation feedback
   document.querySelectorAll('.form-control').forEach(input => {
     input.addEventListener('blur', function() {
-      if (this.validity.valid) {
+      if (this.validity && this.validity.valid) {
         this.style.borderColor = 'var(--success)';
       } else if (this.value !== '') {
         this.style.borderColor = 'var(--danger)';
@@ -547,7 +558,5 @@
       this.style.borderColor = 'var(--primary)';
     });
   });
-</style>
+</script>
 
-<%- include('partials/footer') %>
-<%- include('partials/scripts') %>

@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>E-Hividy - Shop Quality Products Online</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/AppIcons/Assets.xcassets/AppIcon.appiconset/_/32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/AppIcons/Assets.xcassets/AppIcon.appiconset/_/16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/AppIcons/Assets.xcassets/AppIcon.appiconset/_/180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/images/AppIcons/Assets.xcassets/AppIcon.appiconset/_/196.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/images/AppIcons/Assets.xcassets/AppIcon.appiconset/_/512.png">
+  <link rel="shortcut icon" href="/images/AppIcons/Assets.xcassets/AppIcon.appiconset/_/64.png">
+  
   <link rel="stylesheet" href="/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -926,6 +935,11 @@
         grid-template-columns: 1fr;
         gap: 2rem;
       }
+
+      .nav-logo {
+        height: 35px;
+        width: auto;
+      }
     }
 
     @media (max-width: 480px) {
@@ -940,13 +954,36 @@
       .section-title h2 {
         font-size: 1.75rem;
       }
+
+      .nav-logo {
+        height: 30px;
+      }
+    }
+
+    /* Navigation Logo */
+    .nav-logo {
+      height: 45px;
+      width: auto;
+      display: block;
+      transition: transform 0.3s;
+    }
+
+    .nav-logo:hover {
+      transform: scale(1.05);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
     }
   </style>
 </head>
 <body>
   <nav>
     <div class="nav-brand">
-      <a href="/" style="color: white; text-decoration: none;"><h1>🛍️ E-Hividy</h1></a>
+      <a href="/">
+        <img src="/images/logo.png" alt="E-Hividy" class="nav-logo">
+      </a>
     </div>
 
     <button class="menu-toggle" onclick="toggleMenu()">☰</button>
@@ -1112,44 +1149,6 @@
 
   <!-- Enhanced Footer -->
   <footer>
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3>🛍️ E-Hividy</h3>
-        <p>Your one-stop destination for quality products at unbeatable prices. Shop with confidence and enjoy exceptional customer service.</p>
-        <div class="social-links">
-          <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-          <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-          <a href="#" class="social-link"><i class="fab fa-pinterest"></i></a>
-        </div>
-      </div>
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <ul class="footer-links">
-          <li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li>
-          <li><a href="/?sort=price-asc"><i class="fas fa-chevron-right"></i> Best Deals</a></li>
-          <li><a href="/?sort=name-asc"><i class="fas fa-chevron-right"></i> New Arrivals</a></li>
-          <li><a href="/user/account"><i class="fas fa-chevron-right"></i> My Account</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3>Customer Service</h3>
-        <ul class="footer-links">
-          <li><a href="#"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i> Shipping Info</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i> Returns</a></li>
-          <li><a href="#"><i class="fas fa-chevron-right"></i> FAQ</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3>Contact Info</h3>
-        <ul class="footer-links">
-          <li><a href="#"><i class="fas fa-map-marker-alt"></i> Antananarivo, Madagascar</a></li>
-          <li><a href="mailto:support@e-hividy.com"><i class="fas fa-envelope"></i> support@e-hividy.com</a></li>
-          <li><a href="tel:+261340000000"><i class="fas fa-phone"></i> +261 34 00 000 00</a></li>
-        </ul>
-      </div>
-    </div>
     <div class="footer-bottom">
       <p>&copy; 2026 E-Hividy. All rights reserved. Made with ❤️ in Madagascar</p>
     </div>
